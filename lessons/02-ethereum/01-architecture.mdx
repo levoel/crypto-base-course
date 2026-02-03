@@ -1,0 +1,235 @@
+---
+title: "Архитектура Ethereum"
+description: "Обзор архитектуры Ethereum: World State, Account Model, EVM"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Архитектура Ethereum
+
+Ethereum — программируемый блокчейн, который расширяет идеи Bitcoin добавлением **smart contracts** и **World State**. Если Bitcoin — калькулятор, то Ethereum — компьютер.
+
+## Bitcoin vs Ethereum
+
+<Callout type="info">
+Bitcoin хранит UTXO (кто чем владеет). Ethereum хранит World State (полное состояние всех аккаунтов и контрактов).
+</Callout>
+
+| Аспект | Bitcoin | Ethereum |
+|--------|---------|----------|
+| Модель данных | UTXO | Account-based |
+| State | Неявный (сумма UTXO) | Явный (World State) |
+| Scripting | Bitcoin Script (ограничен) | EVM (Turing-complete) |
+| Block time | ~10 минут | ~12 секунд |
+| Консенсус | PoW | PoS (после Merge) |
+
+## World State
+
+World State — это mapping от адресов к аккаунтам:
+
+```
+World State = Map<Address, Account>
+
+Address: 20 bytes (0x742d35Cc6634C0532925a3b844Bc9e7595f...)
+```
+
+### Account Structure
+
+```python
+class Account:
+    nonce: int           # Количество транзакций (EOA) или созданных контрактов
+    balance: int         # Wei (1 ETH = 10^18 Wei)
+    storage_root: Hash   # Merkle root хранилища контракта (только для контрактов)
+    code_hash: Hash      # Hash bytecode (только для контрактов)
+```
+
+### Два типа аккаунтов
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Externally Owned Account (EOA)          │
+├─────────────────────────────────────────────────────────────┤
+│ • Контролируется private key                                │
+│ • Может инициировать транзакции                            │
+│ • nonce = счётчик транзакций                               │
+│ • code_hash = EMPTY (нет кода)                             │
+│ • storage_root = EMPTY (нет storage)                       │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    Contract Account                         │
+├─────────────────────────────────────────────────────────────┤
+│ • Контролируется кодом                                      │
+│ • Не может инициировать транзакции (только respond)        │
+│ • nonce = счётчик созданных контрактов                     │
+│ • code_hash = hash(bytecode)                               │
+│ • storage_root = Merkle root of storage trie               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## State Trie
+
+Ethereum использует **Modified Merkle Patricia Trie** для хранения state:
+
+```
+                     State Root
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+      [0x1...]        [0x5...]        [0xa...]
+         │               │               │
+    ┌────┴────┐     Account          ┌───┴───┐
+    │         │     Data             │       │
+ [0x1a...]  [0x1f...]             [0xab...] [0xac...]
+    │                                 │
+ Account                           Account
+ Data                              Data
+```
+
+<Callout type="warning">
+State trie — главный bottleneck Ethereum. Каждое чтение/запись storage = несколько disk I/O. Это причина высокой стоимости SSTORE/SLOAD opcodes.
+</Callout>
+
+## Transaction Structure
+
+```python
+class Transaction:
+    nonce: int              # Должен == sender.nonce
+    gas_price: int          # Wei за единицу gas (legacy)
+    gas_limit: int          # Максимум gas
+    to: Address | None      # None = contract creation
+    value: int              # ETH transfer (Wei)
+    data: bytes             # Input data / contract bytecode
+
+# EIP-1559 (после London)
+class Transaction1559:
+    chain_id: int
+    nonce: int
+    max_priority_fee: int   # Tip для validator
+    max_fee: int            # Max total fee
+    gas_limit: int
+    to: Address | None
+    value: int
+    data: bytes
+    access_list: List[Tuple[Address, List[StorageKey]]]
+```
+
+### Transaction Flow
+
+```
+1. User signs transaction
+         ↓
+2. Transaction broadcasted to mempool
+         ↓
+3. Validator selects transactions (by fee)
+         ↓
+4. EVM executes transaction
+         ↓
+5. State transitions applied
+         ↓
+6. Receipt generated (logs, status, gas used)
+         ↓
+7. Block finalized
+```
+
+## Block Structure
+
+```python
+class Block:
+    # Header
+    parent_hash: Hash
+    uncle_hash: Hash         # ommer blocks (PoW legacy)
+    coinbase: Address        # Fee recipient
+    state_root: Hash         # World State после блока
+    transactions_root: Hash  # Trie корень транзакций
+    receipts_root: Hash      # Trie корень receipts
+    logs_bloom: Bloom        # Bloom filter для логов
+    difficulty: int          # PoS: всегда 0
+    number: int              # Block height
+    gas_limit: int
+    gas_used: int
+    timestamp: int
+    extra_data: bytes
+    mix_hash: Hash           # PoS: RANDAO mix
+    nonce: bytes             # PoS: всегда 0
+    base_fee: int            # EIP-1559
+
+    # Body
+    transactions: List[Transaction]
+    uncles: List[BlockHeader]  # PoS: пустой
+    withdrawals: List[Withdrawal]  # После Shanghai
+```
+
+## Receipts и Logs
+
+После выполнения каждой транзакции создаётся receipt:
+
+```python
+class Receipt:
+    status: bool              # 1 = success, 0 = revert
+    cumulative_gas_used: int  # Total gas в блоке до этой tx
+    logs_bloom: Bloom         # Bloom filter для быстрого поиска
+    logs: List[Log]           # События от контрактов
+
+class Log:
+    address: Address          # Контракт, который emit
+    topics: List[Hash]        # Indexed параметры (max 4)
+    data: bytes               # Non-indexed параметры
+```
+
+<Callout type="info">
+Logs — основной источник данных для data engineers. События типа Transfer, Swap, Mint индексируются для analytics.
+</Callout>
+
+## Данные для анализа
+
+```sql
+-- Основные таблицы Ethereum
+CREATE TABLE blocks (
+    number BIGINT PRIMARY KEY,
+    hash CHAR(66),
+    parent_hash CHAR(66),
+    timestamp TIMESTAMP,
+    gas_used BIGINT,
+    gas_limit BIGINT,
+    base_fee BIGINT,
+    transaction_count INT
+);
+
+CREATE TABLE transactions (
+    hash CHAR(66) PRIMARY KEY,
+    block_number BIGINT,
+    from_address CHAR(42),
+    to_address CHAR(42),
+    value NUMERIC(78),
+    gas_used BIGINT,
+    gas_price BIGINT,
+    status BOOLEAN
+);
+
+CREATE TABLE logs (
+    block_number BIGINT,
+    log_index INT,
+    transaction_hash CHAR(66),
+    address CHAR(42),
+    topic0 CHAR(66),  -- Event signature
+    topic1 CHAR(66),
+    topic2 CHAR(66),
+    topic3 CHAR(66),
+    data BYTEA,
+    PRIMARY KEY (block_number, log_index)
+);
+
+-- Индекс для поиска событий по сигнатуре
+CREATE INDEX idx_logs_topic0 ON logs(topic0, block_number);
+CREATE INDEX idx_logs_address ON logs(address, block_number);
+```
+
+## Резюме
+
+- Ethereum = World State + EVM + Smart Contracts
+- Account model вместо UTXO
+- State trie — bottleneck (причина высоких gas costs)
+- Два типа аккаунтов: EOA (users) и Contract
+- Logs/Events — главный источник данных для analytics
+- Block time ~12s, finality ~13 минут (PoS)

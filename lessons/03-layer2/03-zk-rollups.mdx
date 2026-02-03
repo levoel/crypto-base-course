@@ -1,0 +1,264 @@
+---
+title: "ZK Rollups"
+description: "Zero-Knowledge Rollups: validity proofs, SNARKs vs STARKs, zkEVM"
+difficulty: "advanced"
+timeToComplete: 25
+---
+
+# ZK Rollups
+
+ZK Rollups используют **криптографические доказательства** (validity proofs) вместо fraud proofs. Каждый batch сопровождается proof, который математически гарантирует корректность.
+
+## Optimistic vs ZK
+
+<Callout type="info">
+Optimistic: "Докажи, что я неправ" (7 дней на challenge)
+ZK: "Вот доказательство, что я прав" (мгновенная верификация)
+</Callout>
+
+| Aspect | Optimistic | ZK |
+|--------|------------|-----|
+| Validity | Assumed (fraud proofs) | Proven (validity proofs) |
+| Finality | 7 days | Minutes (proof generation) |
+| Withdrawal | 7 days | Fast |
+| Computation | Cheap (off-chain) | Expensive (proof generation) |
+| EVM compatibility | Native | Challenging |
+
+## Zero-Knowledge Proofs
+
+### Что такое ZK Proof?
+
+```
+Prover                              Verifier
+   │                                    │
+   │  "I know x such that f(x) = y"     │
+   │ ──────────────────────────────────►│
+   │                                    │
+   │  Proof π (doesn't reveal x)        │
+   │ ──────────────────────────────────►│
+   │                                    │
+   │                              Verify(π, y) = true/false
+   │                                    │
+```
+
+Свойства:
+- **Completeness**: честный prover всегда убедит
+- **Soundness**: нечестный prover не может обмануть
+- **Zero-Knowledge**: verifier не узнаёт x (только что proof валиден)
+
+### SNARKs vs STARKs
+
+| Property | SNARKs | STARKs |
+|----------|--------|--------|
+| Trusted Setup | Required | Not required |
+| Proof Size | ~200 bytes | ~50 KB |
+| Verification | O(1) | O(log n) |
+| Quantum Resistant | No | Yes |
+| Prover Time | Faster | Slower |
+| Used by | zkSync, Polygon zkEVM | StarkNet, zkSync (hybrid) |
+
+## ZK Rollup Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      ZK Rollup                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   Users ──► Sequencer ──► Prover ──► L1 Verifier            │
+│      │          │            │            │                 │
+│      │    ┌─────┴────┐  ┌────┴────┐      │                 │
+│      │    │          │  │         │      │                 │
+│      │  Order &    Batch  Generate      │                 │
+│      │  Execute    txs    ZK Proof      │                 │
+│      │    │          │  │         │      │                 │
+│      │    └────┬─────┘  └────┬────┘      │                 │
+│      │         │             │           │                 │
+│      │         └──────┬──────┘           │                 │
+│      │                │                  │                 │
+│      │    State Root + Proof + Tx Data   │                 │
+│      │                │                  │                 │
+│      │                ▼                  │                 │
+│      │        ┌───────────────┐          │                 │
+│      │        │  L1 Verifier  │ ◄────────┘                 │
+│      │        │  Contract     │                            │
+│      │        └───────────────┘                            │
+│      │                │                                    │
+│      │    Verification: O(1) computation                   │
+│      │    If valid → State finalized                       │
+│      │                                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## zkEVM
+
+<Callout type="warning">
+EVM не был разработан для ZK. Доказательство EVM execution — сложная инженерная задача.
+</Callout>
+
+### zkEVM Types (Vitalik's classification)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    zkEVM Spectrum                           │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  Type 1: Fully Ethereum-equivalent                         │
+│  ├─ Proves actual Ethereum blocks                          │
+│  ├─ No modifications to Ethereum                           │
+│  └─ Examples: (in development)                             │
+│                                                            │
+│  Type 2: Fully EVM-equivalent                              │
+│  ├─ Same EVM, different state/block structure              │
+│  ├─ 100% Solidity compatible                               │
+│  └─ Examples: Scroll, Polygon zkEVM                        │
+│                                                            │
+│  Type 2.5: EVM-equivalent except gas costs                 │
+│  ├─ Different gas costs for some opcodes                   │
+│  └─ Examples: Scroll (current)                             │
+│                                                            │
+│  Type 3: Almost EVM-equivalent                             │
+│  ├─ Most contracts work                                    │
+│  ├─ Some edge cases differ                                 │
+│  └─ Examples: (transitional)                               │
+│                                                            │
+│  Type 4: High-level language equivalent                    │
+│  ├─ Compiles Solidity/Vyper to ZK-friendly VM              │
+│  ├─ Different bytecode                                     │
+│  └─ Examples: zkSync Era, StarkNet (Cairo)                 │
+│                                                            │
+│                                                            │
+│  ◄────────────────────────────────────────────────────────►│
+│  More compatible                              Faster proofs │
+└────────────────────────────────────────────────────────────┘
+```
+
+### zkSync Era (Type 4)
+
+```
+Solidity/Vyper
+      │
+      ▼
+   zksolc/zkvyper (custom compiler)
+      │
+      ▼
+   zkEVM bytecode (not EVM bytecode!)
+      │
+      ▼
+   zkSync VM execution
+      │
+      ▼
+   SNARK proof generation
+```
+
+### Polygon zkEVM (Type 2)
+
+```
+Solidity
+      │
+      ▼
+   Standard solc
+      │
+      ▼
+   EVM bytecode
+      │
+      ▼
+   zkEVM execution (circuit per opcode)
+      │
+      ▼
+   SNARK proof generation
+```
+
+## Proof Generation
+
+### Prover Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Prover Pipeline                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Transactions                                               │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────┐                                             │
+│  │ Execution │ → Execution trace                           │
+│  │   Trace   │   (every opcode, memory, storage access)    │
+│  └───────────┘                                             │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────┐                                             │
+│  │ Arithmetic│ → Constraints (polynomial equations)        │
+│  │  Circuit  │   R1CS / AIR                                │
+│  └───────────┘                                             │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌───────────┐                                             │
+│  │   Prover  │ → ZK Proof                                  │
+│  │  (heavy)  │   SNARK / STARK                             │
+│  └───────────┘                                             │
+│       │                                                     │
+│  Compute: GPU cluster, minutes-hours                        │
+│  Memory: 100+ GB RAM                                        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Proof Aggregation
+
+```
+Batch 1 ──► Proof 1 ─┐
+Batch 2 ──► Proof 2 ─┼──► Aggregated Proof ──► L1
+Batch 3 ──► Proof 3 ─┘
+
+Benefit: One L1 verification for multiple batches
+         Amortizes verification cost
+```
+
+## Current ZK Rollups
+
+| Rollup | Type | Proof System | TVL | Status |
+|--------|------|--------------|-----|--------|
+| zkSync Era | Type 4 | PLONK + FRI | $150M | Mainnet |
+| Polygon zkEVM | Type 2 | SNARK | $50M | Mainnet |
+| Scroll | Type 2.5 | SNARK | $100M | Mainnet |
+| Linea | Type 2 | SNARK | $300M | Mainnet |
+| StarkNet | Type 4 (Cairo) | STARK | $200M | Mainnet |
+
+## Data для анализа
+
+```sql
+-- zkSync Era proof submissions
+SELECT
+    block_number,
+    transaction_hash,
+    gas_used as verification_gas,
+    -- Proof data in input
+    LENGTH(input) as proof_size_bytes
+FROM ethereum.transactions
+WHERE to_address = '0x32400084C286CF3E17e7B677ea9583e60a000324'  -- zkSync diamond
+  AND SUBSTR(input, 1, 10) = '0x...'  -- proveBlocks selector
+ORDER BY block_number DESC
+LIMIT 50;
+
+-- Compare L2 activity
+SELECT
+    chain,
+    COUNT(*) as tx_count,
+    COUNT(DISTINCT from_address) as users,
+    AVG(gas_price) / 1e9 as avg_gwei
+FROM l2_transactions
+WHERE chain IN ('zksync', 'polygon_zkevm', 'scroll', 'linea')
+  AND block_timestamp > CURRENT_DATE - INTERVAL '7 days'
+GROUP BY chain
+ORDER BY tx_count DESC;
+```
+
+## Резюме
+
+- ZK Rollups: validity proofs вместо fraud proofs
+- Finality: минуты (proof generation) вместо 7 дней
+- SNARKs: маленькие proofs, требуют trusted setup
+- STARKs: большие proofs, quantum-resistant
+- zkEVM types: Type 1-4, trade-off compatibility vs prover speed
+- Proof generation: GPU-intensive, minutes-hours per batch
+- Aggregation: один proof для нескольких batches

@@ -1,0 +1,17 @@
+{
+  "id": "crypto-fundamentals",
+  "title": "Blockchain Fundamentals",
+  "description": "Архитектура блокчейнов для data engineers — Bitcoin, Ethereum, L2, альтернативные L1",
+  "author": "Lev Neganov",
+  "difficulty": "intermediate",
+  "language": "ru",
+  "version": "1.0.0",
+  "modules": [
+    { "id": "01-bitcoin", "title": "Bitcoin Fundamentals" },
+    { "id": "02-ethereum", "title": "Ethereum & Smart Contracts" },
+    { "id": "03-layer2", "title": "Layer 2 Solutions" },
+    { "id": "04-alt-l1", "title": "Alternative L1s" }
+  ],
+  "tags": ["blockchain", "bitcoin", "ethereum", "solana", "cosmos", "polkadot", "l2"],
+  "estimatedHours": 15
+}

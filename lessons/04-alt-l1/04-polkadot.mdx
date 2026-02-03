@@ -1,0 +1,306 @@
+---
+title: "Polkadot & Parachains"
+description: "Polkadot architecture: Relay Chain, Parachains, XCMP, Substrate"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Polkadot & Parachains
+
+Polkadot — heterogeneous multi-chain protocol, где специализированные blockchains (parachains) подключаются к центральной Relay Chain для shared security.
+
+## Architecture
+
+<Callout type="info">
+Polkadot's insight: разделить консенсус и execution. Relay Chain обеспечивает security, parachains — execution.
+</Callout>
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Polkadot Network                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                    ┌───────────────────┐                    │
+│                    │   Relay Chain     │                    │
+│                    │   (DOT staking,   │                    │
+│                    │    consensus)     │                    │
+│                    └─────────┬─────────┘                    │
+│                              │                              │
+│         ┌────────────────────┼────────────────────┐         │
+│         │                    │                    │         │
+│    ┌────┴────┐          ┌────┴────┐          ┌────┴────┐   │
+│    │Parachain│          │Parachain│          │Parachain│   │
+│    │  Acala  │          │ Moonbeam│          │  Astar  │   │
+│    │  (DeFi) │          │  (EVM)  │          │ (dApps) │   │
+│    └─────────┘          └─────────┘          └─────────┘   │
+│                                                             │
+│    ┌─────────┐          ┌─────────┐                        │
+│    │Parachain│          │Parathread│                       │
+│    │ Phala   │          │(pay-per-use)│                    │
+│    │(privacy)│          └─────────┘                        │
+│    └─────────┘                                             │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Core Components
+
+### Relay Chain
+
+```
+Purpose: Shared security, finality, cross-chain messaging
+
+Does NOT:
+- Execute smart contracts
+- Handle user transactions directly
+
+Does:
+- Validator election (NPoS)
+- Parachain slot auctions
+- GRANDPA/BABE consensus
+- XCMP message passing
+```
+
+### Parachains
+
+```
+Parachain = application-specific blockchain
+
+Characteristics:
+- Custom state transition logic
+- Own token economics (optional)
+- Shared security from Relay Chain
+- Slot lease (auction or parathreads)
+
+Examples:
+┌───────────────────────────────────────────────────────────┐
+│  Acala: DeFi hub (stablecoin, DEX, liquid staking)       │
+│  Moonbeam: EVM-compatible smart contracts                │
+│  Astar: Multi-VM (EVM + WASM) dApp platform             │
+│  Phala: Privacy-preserving computation                   │
+│  Centrifuge: Real-world asset financing                  │
+└───────────────────────────────────────────────────────────┘
+```
+
+## Consensus
+
+### BABE + GRANDPA
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 Hybrid Consensus                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  BABE (Block Production):                                   │
+│  - Blind Assignment for Blockchain Extension               │
+│  - VRF-based slot leader selection                         │
+│  - Produces blocks every 6 seconds                         │
+│  - Probabilistic (can have forks)                          │
+│                                                             │
+│  GRANDPA (Finality):                                        │
+│  - GHOST-based Recursive Ancestor Deriving Prefix Agreement│
+│  - Finalizes chains of blocks at once                      │
+│  - Deterministic finality (no reorgs after)               │
+│  - Can finalize even during network partitions             │
+│                                                             │
+│  Together:                                                  │
+│  - Fast block production (BABE)                            │
+│  - Strong finality guarantees (GRANDPA)                    │
+│  - Separation allows optimizing each                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Nominated Proof of Stake (NPoS)
+
+```
+Nominators → nominate validators they trust
+              │
+              ▼
+         ┌─────────┐
+         │ Phragmén│ (election algorithm)
+         │ election│
+         └────┬────┘
+              │
+              ▼
+Active validator set (297 validators on Polkadot)
+
+Slashing: Both validators AND nominators lose stake
+Rewards: Distributed proportionally
+```
+
+## Parachain Lifecycle
+
+### Slot Auctions
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Slot Auction                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Candle Auction (modified):                                 │
+│  - Bidding period: ~7 days                                  │
+│  - Random end time (prevents sniping)                       │
+│  - Highest bid wins slot                                    │
+│                                                             │
+│  Crowdloan:                                                 │
+│  - Projects can crowdsource DOT for bidding                │
+│  - Contributors loan DOT, get parachain tokens             │
+│  - DOT returned after lease period                         │
+│                                                             │
+│  Lease periods:                                             │
+│  - 6 weeks to 2 years (Polkadot)                           │
+│  - Multiple periods can be leased at once                  │
+│                                                             │
+│  Cost: $1M - $50M+ equivalent in DOT                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Parathreads
+
+```
+Alternative to permanent slot:
+
+- Pay-per-block model
+- Auction for individual blocks
+- Lower commitment, lower throughput
+- Good for: low-activity chains, testing
+```
+
+## Cross-Chain Messaging
+
+### XCMP (Cross-Chain Message Passing)
+
+```
+Parachain A                Relay Chain               Parachain B
+     │                          │                         │
+     │ XCM Message              │                         │
+     │─────────────────────────►│                         │
+     │                          │                         │
+     │                    Include in Relay block          │
+     │                          │                         │
+     │                          │ Route to B              │
+     │                          │────────────────────────►│
+     │                          │                         │
+     │                          │                    Execute
+     │                          │                         │
+
+Current: HRMP (Horizontal Relay-routed Message Passing)
+         Messages go through Relay Chain
+
+Future: Direct XCMP
+        Messages between parachains directly
+```
+
+### XCM (Cross-Consensus Message Format)
+
+```rust
+// XCM instruction examples
+enum Instruction {
+    // Transfer assets
+    TransferAsset {
+        assets: MultiAssets,
+        beneficiary: MultiLocation,
+    },
+
+    // Execute on destination
+    Transact {
+        origin_kind: OriginKind,
+        call: Vec<u8>,
+    },
+
+    // Reserve-backed transfer
+    ReserveAssetDeposited(MultiAssets),
+}
+
+// MultiLocation: universal address format
+let sibling_parachain = MultiLocation {
+    parents: 1,
+    interior: X1(Parachain(2000))
+};
+```
+
+## Substrate Framework
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Substrate                                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Pre-built pallets (modules):                               │
+│  - pallet-balances (token transfers)                        │
+│  - pallet-staking (PoS)                                     │
+│  - pallet-contracts (WASM smart contracts)                  │
+│  - pallet-evm (EVM compatibility)                           │
+│  - pallet-xcm (cross-chain messaging)                       │
+│                                                             │
+│  Runtime = WASM blob                                        │
+│  - Upgradeable without hard forks                           │
+│  - Just update WASM code via governance                     │
+│                                                             │
+│  Client:                                                    │
+│  - Networking (libp2p)                                      │
+│  - Consensus (BABE, AURA, GRANDPA)                         │
+│  - Database (RocksDB, ParityDB)                            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Ecosystem Data
+
+```sql
+-- Parachain metrics
+SELECT
+    parachain_name,
+    DATE(block_timestamp) as date,
+    COUNT(*) as extrinsic_count,
+    COUNT(DISTINCT signer) as unique_signers
+FROM polkadot.extrinsics
+WHERE block_timestamp > CURRENT_DATE - INTERVAL '30 days'
+GROUP BY parachain_name, date
+ORDER BY date DESC, extrinsic_count DESC;
+
+-- XCM messages
+SELECT
+    source_parachain,
+    dest_parachain,
+    message_type,
+    COUNT(*) as message_count
+FROM polkadot.xcm_messages
+WHERE block_timestamp > CURRENT_DATE - INTERVAL '7 days'
+GROUP BY source_parachain, dest_parachain, message_type
+ORDER BY message_count DESC;
+
+-- Slot auctions
+SELECT
+    auction_index,
+    winning_parachain,
+    winning_bid / 1e10 as bid_dot,
+    lease_period_start,
+    lease_period_end
+FROM polkadot.auctions
+ORDER BY auction_index DESC
+LIMIT 20;
+```
+
+## Polkadot vs Cosmos
+
+| Aspect | Polkadot | Cosmos |
+|--------|----------|--------|
+| Security | Shared (Relay Chain) | Independent per chain |
+| Interoperability | XCMP (native) | IBC (protocol) |
+| Chain creation | Slot auction / parathread | Deploy Cosmos SDK chain |
+| Governance | On-chain (Relay + parachains) | Per-chain |
+| Finality | GRANDPA (~12-60s) | Tendermint (~6s) |
+| Validator set | Shared (~300) | Per-chain (~100-180) |
+
+## Резюме
+
+- Polkadot: heterogeneous multi-chain with shared security
+- Relay Chain: consensus, не execution
+- Parachains: app-specific chains, slot auctions
+- BABE + GRANDPA: hybrid consensus (production + finality)
+- XCMP/XCM: native cross-chain messaging
+- Substrate: modular framework, upgradeable WASM runtime
+- Trade-off: shared security vs slot cost and competition

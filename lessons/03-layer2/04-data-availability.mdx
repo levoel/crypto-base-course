@@ -1,0 +1,261 @@
+---
+title: "Data Availability"
+description: "Data Availability problem: EIP-4844, Danksharding, DA layers"
+difficulty: "advanced"
+timeToComplete: 20
+---
+
+# Data Availability
+
+Data Availability (DA) — критическая проблема для rollups: данные транзакций должны быть доступны для верификации. Без DA нельзя доказать fraud или восстановить state.
+
+## Проблема
+
+<Callout type="warning">
+Если sequencer скрывает данные транзакций, пользователи не могут:
+- Доказать fraud (optimistic rollups)
+- Восстановить свой баланс (все rollups)
+- Выйти с L2 (все rollups)
+</Callout>
+
+### Data Withholding Attack
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 Data Withholding Attack                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Malicious Sequencer:                                       │
+│                                                             │
+│  1. Execute transaction: Alice → Bob 100 ETH                │
+│  2. Post state root to L1: "new_state_root"                │
+│  3. DON'T post transaction data                            │
+│                                                             │
+│  Result:                                                    │
+│  - L1 knows new state root                                  │
+│  - Nobody can verify it's correct                           │
+│  - Alice can't prove she still has funds                    │
+│  - Validators can't generate fraud proof                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Ethereum DA (Pre-EIP-4844)
+
+### Calldata
+
+```
+Transaction calldata → Ethereum block → All nodes store it
+
+Cost:
+- 16 gas per non-zero byte
+- 4 gas per zero byte
+
+Problem:
+- Expensive (~$1-5 per KB at high gas prices)
+- Competes with execution for block space
+- Stored forever (wasteful for temp data)
+```
+
+### Calldata Compression
+
+```
+Raw transaction: ~100 bytes
+Compressed (zlib): ~60 bytes
+With zero-byte optimization: ~40 bytes
+
+Typical Arbitrum batch:
+- 1000 transactions
+- ~40 KB compressed calldata
+- ~640,000 gas for DA
+- At 50 gwei: ~0.032 ETH (~$80)
+```
+
+## EIP-4844: Proto-Danksharding
+
+<Callout type="info">
+EIP-4844 (March 2024): Новый тип транзакций с "blobs" — дешёвое временное хранилище специально для rollups.
+</Callout>
+
+### Blobs
+
+```
+Blob = 128 KB of data
+      = 4096 field elements
+      = KZG commitment
+
+Per block:
+- Target: 3 blobs (384 KB)
+- Max: 6 blobs (768 KB)
+
+Storage: ~18 days (pruned after)
+```
+
+### Blob Fee Market
+
+```
+Separate from execution gas!
+
+blob_gas_price = min_blob_gas_price * e^((excess_blob_gas) / BLOB_GAS_PRICE_UPDATE_FRACTION)
+
+Target: 3 blobs/block → price stable
+More than 3 → price increases
+Less than 3 → price decreases
+
+Initial cost: ~$0.01-0.10 per blob
+Peak (high demand): ~$1-10 per blob
+```
+
+### Impact on Rollup Costs
+
+```
+Before EIP-4844:
+- Arbitrum tx: $0.10-0.50
+- Optimism tx: $0.10-0.50
+
+After EIP-4844:
+- Arbitrum tx: $0.001-0.01
+- Optimism tx: $0.001-0.01
+
+Reduction: 10-100x cheaper!
+```
+
+## Full Danksharding (Future)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Full Danksharding                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Current (EIP-4844):                                        │
+│  - 6 blobs max per block                                    │
+│  - All nodes download all blobs                             │
+│  - ~768 KB/block for rollups                                │
+│                                                             │
+│  Full Danksharding:                                         │
+│  - 64+ blobs per block                                      │
+│  - Data Availability Sampling (DAS)                         │
+│  - ~16 MB/block for rollups                                 │
+│                                                             │
+│  DAS: Nodes sample random blob chunks                       │
+│       Probabilistic guarantee of availability               │
+│       No node needs ALL data                                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Data Availability Sampling
+
+```
+Blob: [chunk1][chunk2][chunk3]...[chunk_n]
+
+Node A samples: chunk 5, chunk 23, chunk 87
+Node B samples: chunk 12, chunk 45, chunk 91
+Node C samples: chunk 3, chunk 67, chunk 99
+
+If ANY chunk missing → High probability detected
+If ALL chunks available → High confidence data available
+
+Erasure coding: Can reconstruct full blob from 50% of chunks
+```
+
+## Alternative DA Layers
+
+### Celestia
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Celestia                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Purpose-built DA layer:                                    │
+│  - Only does data availability (no execution)               │
+│  - 2D Reed-Solomon erasure coding                           │
+│  - Data Availability Sampling                               │
+│                                                             │
+│  Rollup posts data to Celestia:                             │
+│  ┌─────────┐        ┌─────────┐        ┌─────────┐         │
+│  │ Rollup  │──DA───►│Celestia │──proof─►│Ethereum │         │
+│  │Sequencer│        │  Layer  │        │   L1    │         │
+│  └─────────┘        └─────────┘        └─────────┘         │
+│                                                             │
+│  Security: Celestia consensus (weaker than Ethereum)        │
+│  Cost: ~$0.001 per KB (cheaper than blobs)                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### EigenDA
+
+```
+Uses Ethereum validators via restaking (EigenLayer)
+
+┌─────────┐     ┌───────────┐     ┌─────────┐
+│ Rollup  │────►│ EigenDA   │────►│ ETH L1  │
+│         │     │ (restaked │     │ (proof) │
+│         │     │validators)│     │         │
+└─────────┘     └───────────┘     └─────────┘
+
+Security: Economic security from staked ETH
+Cost: Competitive with blobs
+```
+
+### Comparison
+
+| DA Layer | Security | Cost | Throughput |
+|----------|----------|------|------------|
+| ETH Calldata | Ethereum | High | Low |
+| ETH Blobs | Ethereum | Medium | Medium |
+| Celestia | Celestia | Low | High |
+| EigenDA | Restaked ETH | Medium | High |
+| Avail | Avail | Low | High |
+
+## DA для Data Engineering
+
+```sql
+-- Blob transactions on Ethereum
+SELECT
+    block_number,
+    transaction_hash,
+    from_address,
+    blob_versioned_hashes,
+    blob_gas_used,
+    blob_gas_price
+FROM ethereum.blob_transactions
+WHERE block_timestamp > '2024-03-13'  -- EIP-4844 activation
+ORDER BY block_number DESC;
+
+-- Blob costs analysis
+SELECT
+    DATE(block_timestamp) as date,
+    COUNT(*) as blob_tx_count,
+    SUM(blob_gas_used) as total_blob_gas,
+    AVG(blob_gas_price) / 1e9 as avg_blob_gwei,
+    SUM(blob_gas_used * blob_gas_price) / 1e18 as total_blob_fees_eth
+FROM ethereum.blob_transactions
+GROUP BY DATE(block_timestamp)
+ORDER BY date DESC;
+
+-- Compare rollup costs before/after EIP-4844
+SELECT
+    chain,
+    CASE
+        WHEN block_timestamp < '2024-03-13' THEN 'pre-4844'
+        ELSE 'post-4844'
+    END as period,
+    AVG(l1_fee) / 1e18 as avg_l1_fee_eth,
+    AVG(total_fee) / 1e18 as avg_total_fee_eth
+FROM l2_transactions
+WHERE chain IN ('arbitrum', 'optimism', 'base')
+GROUP BY chain, period
+ORDER BY chain, period;
+```
+
+## Резюме
+
+- DA problem: данные должны быть доступны для верификации
+- Pre-4844: calldata дорогой, конкурирует с execution
+- EIP-4844: blobs — отдельный fee market, 18 дней хранения, 10-100x дешевле
+- Full Danksharding: DAS позволит 16+ MB/block
+- Alt-DA: Celestia, EigenDA — дешевле, но слабее security guarantees
+- Trade-off: Ethereum DA (max security) vs Alt-DA (lower cost)

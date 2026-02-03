@@ -1,0 +1,234 @@
+---
+title: "L1 Trade-offs"
+description: "Архитектурные компромиссы альтернативных L1: консенсус, execution, state management"
+difficulty: "intermediate"
+timeToComplete: 15
+---
+
+# L1 Trade-offs
+
+Альтернативные L1 blockchains — это попытки решить trilemma иначе, чем Ethereum. Каждый делает свои architectural trade-offs.
+
+## Landscape
+
+<Callout type="info">
+"Alt-L1" — blockchains, которые конкурируют с Ethereum за smart contract execution. Каждый оптимизирует разные параметры.
+</Callout>
+
+### Market Position
+
+| Chain | TPS | Finality | Validators | TVL | Approach |
+|-------|-----|----------|------------|-----|----------|
+| Ethereum | 15-30 | 13 min | ~800K | $50B+ | Security-first, L2 scaling |
+| Solana | 3,000+ | 400ms | ~2K | $5B | High throughput |
+| BNB Chain | 300 | 3s | 21 | $5B | Centralized speed |
+| Avalanche | 4,500 | 1s | ~1.5K | $1B | Subnets |
+| Cosmos Hub | 10K+ | 6s | ~180 | $500M | App-chains |
+| Polkadot | Varies | 12s | ~300 | $1B | Parachains |
+
+## Consensus Mechanisms
+
+### Proof of Stake Variants
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│               PoS Consensus Variants                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Ethereum (Gasper):                                         │
+│  - Casper FFG (finality) + LMD-GHOST (fork choice)         │
+│  - 12 sec blocks, 13 min finality                          │
+│  - 800K+ validators, highly decentralized                  │
+│                                                             │
+│  Tendermint (Cosmos, BNB):                                  │
+│  - BFT-based, 2/3 majority for finality                    │
+│  - Instant finality (1-6 seconds)                          │
+│  - Limited validator set (21-180)                          │
+│                                                             │
+│  Proof of History (Solana):                                 │
+│  - VDF-based timestamping + Tower BFT                      │
+│  - 400ms block time                                        │
+│  - Requires specialized hardware                           │
+│                                                             │
+│  GRANDPA + BABE (Polkadot):                                 │
+│  - Hybrid: probabilistic + deterministic finality          │
+│  - BABE for block production, GRANDPA for finality         │
+│  - 12 sec target block time                                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Finality Trade-offs
+
+```
+Ethereum:
+  ┌─────────┐     ┌─────────┐     ┌─────────┐
+  │  Slot   │────►│  Slot   │────►│  Slot   │ ... (32 slots = epoch)
+  │  12s    │     │  12s    │     │  12s    │
+  └─────────┘     └─────────┘     └─────────┘
+                                        │
+                                   2 epochs = finality (~13 min)
+
+Solana:
+  ┌─────────┐     ┌─────────┐     ┌─────────┐
+  │  Slot   │────►│  Slot   │────►│  Slot   │
+  │  400ms  │     │  400ms  │     │  400ms  │
+  └─────────┘     └─────────┘     └─────────┘
+                        │
+                   ~32 slots = optimistic finality (~12s)
+
+Tendermint:
+  ┌─────────┐
+  │  Block  │ ← 2/3+ validators sign = INSTANT finality
+  │  ~6s    │
+  └─────────┘
+```
+
+## Execution Models
+
+### Sequential vs Parallel
+
+```
+Ethereum (Sequential):
+  Tx1 ──► Tx2 ──► Tx3 ──► Tx4
+  │       │       │       │
+  State changes must be ordered
+
+Solana (Parallel):
+  Tx1 (Account A) ──┬──► New State
+  Tx2 (Account B) ──┤
+  Tx3 (Account C) ──┤
+  Tx4 (Account A) ──┴──► (waits for Tx1)
+
+  Sealevel runtime: parallel execution if no conflicts
+```
+
+<Callout type="warning">
+Параллельное выполнение требует объявления accessed accounts заранее. Это усложняет некоторые DeFi паттерны.
+</Callout>
+
+### State Models
+
+| Chain | State Model | Storage Cost | State Growth |
+|-------|-------------|--------------|--------------|
+| Ethereum | Account (MPT) | High (SSTORE ~20K gas) | ~1TB |
+| Solana | Account-based | Rent-based | ~200GB |
+| Cosmos | IAVL Tree | Lower | Per app-chain |
+| Polkadot | Substrate storage | Deposit-based | Per parachain |
+
+## Validator Economics
+
+### Hardware Requirements
+
+```
+Ethereum:
+- 16GB RAM
+- 2TB SSD
+- Consumer internet
+- Cost: ~$500/year
+
+Solana:
+- 256GB RAM
+- NVMe RAID
+- 10 Gbps internet
+- Cost: ~$30,000/year (datacenter)
+
+Cosmos (typical):
+- 32GB RAM
+- 500GB SSD
+- Moderate internet
+- Cost: ~$2,000/year
+```
+
+### Validator Concentration
+
+```
+Ethereum:              Solana:                Cosmos Hub:
+┌────────────────┐    ┌────────────────┐     ┌────────────────┐
+│ Lido: 29%      │    │ Helius: 5%     │     │ Top 10: ~35%   │
+│ Coinbase: 9%   │    │ Jump: 4%       │     │                │
+│ Kraken: 3%     │    │ Figment: 3%    │     │                │
+│ ...            │    │ ...            │     │                │
+│                │    │                │     │                │
+│ 800K validators│    │ ~2K validators │     │ ~180 validators│
+└────────────────┘    └────────────────┘     └────────────────┘
+
+Nakamoto coefficient (nodes to halt):
+Ethereum: ~3          Solana: ~20             Cosmos: ~7
+(controversial metrics)
+```
+
+## Smart Contract Models
+
+### EVM Compatible
+
+```
+EVM chains (deploy same contracts):
+- Ethereum, Arbitrum, Optimism
+- BNB Chain, Polygon, Avalanche C-Chain
+- Fantom, Gnosis Chain
+- Many L2s and sidechains
+
+Pros: Existing tooling, easy migration
+Cons: EVM limitations inherited
+```
+
+### Alternative VMs
+
+```
+Solana (Sealevel/SVM):
+- Rust + Anchor framework
+- Account-based, parallel execution
+- Different programming model
+
+Cosmos (CosmWasm):
+- Rust-based
+- Module system
+- IBC native
+
+Polkadot (WASM):
+- WebAssembly-based
+- Multiple languages possible
+- Substrate framework
+
+Move-based (Aptos, Sui):
+- Resource-oriented
+- Linear types for safety
+- Parallel execution
+```
+
+## Data для сравнения
+
+```sql
+-- Cross-chain comparison
+SELECT
+    chain,
+    DATE(block_timestamp) as date,
+    COUNT(*) as tx_count,
+    COUNT(DISTINCT from_address) as unique_users,
+    AVG(block_time_seconds) as avg_block_time
+FROM multi_chain.transactions
+WHERE chain IN ('ethereum', 'solana', 'bnb', 'avalanche', 'polygon')
+  AND block_timestamp > CURRENT_DATE - INTERVAL '30 days'
+GROUP BY chain, date
+ORDER BY date DESC, tx_count DESC;
+
+-- Validator distribution
+SELECT
+    chain,
+    validator_address,
+    stake_amount,
+    stake_amount * 100.0 / SUM(stake_amount) OVER (PARTITION BY chain) as stake_pct
+FROM staking.validators
+WHERE chain IN ('ethereum', 'solana', 'cosmos')
+ORDER BY chain, stake_amount DESC;
+```
+
+## Резюме
+
+- Alt-L1s optimize for different points in trilemma
+- Consensus: Tendermint (fast finality) vs Gasper (decentralization) vs PoH (throughput)
+- Execution: Sequential (simpler) vs Parallel (faster)
+- Hardware: Consumer (Ethereum) vs Datacenter (Solana)
+- VM: EVM compatible (easy migration) vs Custom (optimized)
+- Trade-off: нет "лучшего" решения, есть разные оптимизации

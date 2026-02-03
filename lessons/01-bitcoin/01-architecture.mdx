@@ -1,0 +1,91 @@
+---
+title: "Архитектура Bitcoin"
+description: "Обзор архитектуры Bitcoin: peer-to-peer сеть, распределённый консенсус, неизменяемый ledger"
+difficulty: "intermediate"
+timeToComplete: 15
+---
+
+# Архитектура Bitcoin
+
+Bitcoin — первая decentralized cryptocurrency, запущенная в 2009 году. Для data engineer важно понимать не столько криптографию, сколько **архитектурные решения**, которые легли в основу всех последующих блокчейнов.
+
+## Ключевые компоненты
+
+<Callout type="info">
+Bitcoin решает проблему **double-spending** в распределённой системе без центрального арбитра.
+</Callout>
+
+### 1. Peer-to-Peer Network
+
+Bitcoin использует gossip protocol для распространения транзакций и блоков:
+
+- **Full nodes** — хранят полную копию блокчейна (~500GB)
+- **Light nodes (SPV)** — хранят только заголовки блоков
+- **Mining nodes** — full nodes + участвуют в консенсусе
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Full Node  │────▶│  Full Node  │────▶│ Mining Node │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │
+       ▼                   ▼                   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  SPV Node   │     │  Full Node  │     │  Full Node  │
+└─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### 2. Blockchain Structure
+
+Цепочка блоков, где каждый блок содержит:
+
+| Поле | Размер | Описание |
+|------|--------|----------|
+| Version | 4 bytes | Версия протокола |
+| Previous Block Hash | 32 bytes | SHA-256 хеш предыдущего блока |
+| Merkle Root | 32 bytes | Корень дерева транзакций |
+| Timestamp | 4 bytes | Unix timestamp |
+| Difficulty Target | 4 bytes | Текущая сложность |
+| Nonce | 4 bytes | Для Proof of Work |
+
+### 3. Consensus Mechanism
+
+Bitcoin использует **Proof of Work (PoW)** — майнеры соревнуются за право добавить следующий блок:
+
+1. Собирают pending транзакции из mempool
+2. Формируют block header
+3. Перебирают nonce пока `SHA256(SHA256(header)) < target`
+4. Первый нашедший получает block reward + fees
+
+<Callout type="warning">
+Block time ~10 минут — это trade-off между безопасностью и latency. Меньше время = больше orphan blocks = меньше безопасность.
+</Callout>
+
+## Данные для анализа
+
+Для data engineer Bitcoin предоставляет:
+
+- **Транзакции** — граф движения средств (UTXO model)
+- **Блоки** — временные метки, сложность, размер
+- **Mempool** — pending транзакции, fee market
+- **Network metrics** — количество нод, hashrate
+
+## Ключевые метрики
+
+```sql
+-- Пример анализа Bitcoin данных
+SELECT
+    DATE(block_timestamp) as date,
+    COUNT(*) as tx_count,
+    SUM(output_value) / 1e8 as btc_volume,
+    AVG(fee) / 1e8 as avg_fee_btc
+FROM bitcoin.transactions
+GROUP BY DATE(block_timestamp)
+ORDER BY date DESC;
+```
+
+## Резюме
+
+- Bitcoin = P2P сеть + PoW консенсус + UTXO модель
+- Блок ~1MB, ~2000-3000 транзакций, каждые ~10 минут
+- Full node требует ~500GB хранилища
+- Данные публичны и доступны для анализа

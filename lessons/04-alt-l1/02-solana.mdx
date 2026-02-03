@@ -1,0 +1,293 @@
+---
+title: "Solana Architecture"
+description: "Архитектура Solana: Proof of History, Sealevel, Turbine, Gulf Stream"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Solana Architecture
+
+Solana — high-performance blockchain, оптимизированный для throughput. Достигает 3,000+ TPS за счёт novel инноваций и требовательного hardware.
+
+## Core Innovations
+
+<Callout type="info">
+Solana's key insight: время — bottleneck для консенсуса. Proof of History создаёт trustless clock для ordering событий.
+</Callout>
+
+### 8 Key Innovations
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  Solana's 8 Innovations                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. Proof of History (PoH)     - Verifiable delay function  │
+│  2. Tower BFT                  - PoH-optimized consensus    │
+│  3. Turbine                    - Block propagation protocol │
+│  4. Gulf Stream                - Mempool-less tx forwarding │
+│  5. Sealevel                   - Parallel smart contracts   │
+│  6. Pipelining                 - Validation optimization    │
+│  7. Cloudbreak                 - Horizontal state scaling   │
+│  8. Archivers                  - Distributed ledger storage │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Proof of History
+
+PoH — это VDF (Verifiable Delay Function), которая создаёт криптографический timestamp:
+
+```
+hash_n = SHA256(hash_{n-1})
+
+Последовательность хешей = proof что время прошло
+
+hash_0 ──► hash_1 ──► hash_2 ──► ... ──► hash_n
+  │          │          │                  │
+  t_0       t_1        t_2               t_n
+
+Verify: Любой может проверить, пересчитав хеши
+        Нельзя создать быстрее, чем последовательно
+```
+
+### PoH + Consensus
+
+```
+Leader Schedule:
+┌─────────┬─────────┬─────────┬─────────┐
+│ Leader A│ Leader B│ Leader C│ Leader A│
+│ 4 slots │ 4 slots │ 4 slots │ 4 slots │
+└─────────┴─────────┴─────────┴─────────┘
+    │
+    ▼
+Leader produces blocks with PoH timestamps
+    │
+    ▼
+Other validators verify PoH + vote
+    │
+    ▼
+Tower BFT: Votes have increasing lockout times
+           (exponential penalty for switching)
+```
+
+## Account Model
+
+<Callout type="warning">
+Solana accounts ≠ Ethereum accounts. Всё — это account, включая программы и данные.
+</Callout>
+
+### Account Structure
+
+```rust
+pub struct Account {
+    /// Lamports in the account
+    pub lamports: u64,
+
+    /// Data held in this account
+    pub data: Vec<u8>,
+
+    /// Program that owns this account
+    pub owner: Pubkey,
+
+    /// Is this account executable (program)?
+    pub executable: bool,
+
+    /// Epoch at which this account will next owe rent
+    pub rent_epoch: Epoch,
+}
+```
+
+### Account Ownership
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                    Account Ownership                       │
+├───────────────────────────────────────────────────────────┤
+│                                                           │
+│  System Program (owns SOL accounts)                       │
+│       │                                                   │
+│       └──► User Wallet Account                            │
+│            - lamports: 1_000_000_000                      │
+│            - data: []                                     │
+│            - owner: System Program                        │
+│                                                           │
+│  Token Program (owns token accounts)                      │
+│       │                                                   │
+│       └──► Token Account                                  │
+│            - lamports: 2_039_280 (rent)                   │
+│            - data: [mint, owner, amount, ...]            │
+│            - owner: Token Program                         │
+│                                                           │
+│  Custom Program (owns custom accounts)                    │
+│       │                                                   │
+│       └──► PDA Account                                    │
+│            - lamports: rent_exempt                        │
+│            - data: [custom_state]                        │
+│            - owner: Custom Program                        │
+│                                                           │
+└───────────────────────────────────────────────────────────┘
+```
+
+## Sealevel: Parallel Execution
+
+```rust
+// Transaction must declare all accounts it will access
+let tx = Transaction::new_signed_with_payer(
+    &[instruction],
+    Some(&payer.pubkey()),
+    &[&payer],
+    recent_blockhash,
+);
+
+// Instruction specifies accounts
+let instruction = Instruction {
+    program_id: my_program,
+    accounts: vec![
+        AccountMeta::new(account_a, false),      // writable
+        AccountMeta::new_readonly(account_b, false), // read-only
+    ],
+    data: instruction_data,
+};
+```
+
+### Parallel Scheduling
+
+```
+Transactions in block:
+  Tx1: accounts [A, B] (write A, read B)
+  Tx2: accounts [C, D] (write C, write D)
+  Tx3: accounts [A, E] (read A, write E)
+  Tx4: accounts [F, G] (write F, read G)
+
+Dependency graph:
+  Tx1 ──────► Tx3 (both access A)
+  Tx2 ◄─────────────── (independent)
+  Tx4 ◄─────────────── (independent)
+
+Parallel execution:
+  Thread 1: Tx1 ──► Tx3
+  Thread 2: Tx2
+  Thread 3: Tx4
+
+  Total time ≈ max(Tx1+Tx3, Tx2, Tx4)
+```
+
+## Transaction Structure
+
+```rust
+pub struct Transaction {
+    /// A set of signatures
+    pub signatures: Vec<Signature>,
+
+    /// The message to sign
+    pub message: Message,
+}
+
+pub struct Message {
+    /// The message header
+    pub header: MessageHeader,
+
+    /// All the account keys used by this transaction
+    pub account_keys: Vec<Pubkey>,
+
+    /// The blockhash of a recent block
+    pub recent_blockhash: Hash,
+
+    /// Instructions that invoke programs
+    pub instructions: Vec<CompiledInstruction>,
+}
+```
+
+### Transaction Fees
+
+```
+Base fee: 5,000 lamports (0.000005 SOL)
+Priority fee: lamports per compute unit
+
+Total fee = base_fee + (priority_fee * compute_units)
+
+Compute budget:
+- Default: 200,000 CU per instruction
+- Max: 1,400,000 CU per transaction
+
+Example:
+  Base: 5,000 lamports = $0.0007
+  Priority (high): 1,000 lamports/CU * 200,000 CU = $0.03
+  Total: ~$0.03 (during congestion)
+```
+
+## Data для анализа
+
+```sql
+-- Solana block metrics
+SELECT
+    slot,
+    block_time,
+    transaction_count,
+    successful_transaction_count,
+    total_fee / 1e9 as total_fee_sol
+FROM solana.blocks
+WHERE block_time > NOW() - INTERVAL '1 day'
+ORDER BY slot DESC
+LIMIT 100;
+
+-- Program usage
+SELECT
+    program_id,
+    COUNT(*) as instruction_count,
+    COUNT(DISTINCT transaction_signature) as tx_count
+FROM solana.instructions
+WHERE block_time > NOW() - INTERVAL '1 day'
+GROUP BY program_id
+ORDER BY instruction_count DESC
+LIMIT 20;
+
+-- Account activity
+SELECT
+    DATE(block_time) as date,
+    COUNT(DISTINCT signer) as unique_signers,
+    COUNT(DISTINCT tx_signature) as tx_count,
+    SUM(fee) / 1e9 as total_fees_sol
+FROM solana.transactions
+WHERE block_time > NOW() - INTERVAL '30 days'
+GROUP BY date
+ORDER BY date DESC;
+```
+
+## Challenges
+
+### Outages
+
+```
+Historical outages (2021-2023):
+- Network congestion from NFT mints
+- Vote transaction spam
+- Duplicate block production
+
+Root causes:
+- Aggressive parallelism assumptions
+- Complex state management
+- Validator coordination issues
+```
+
+### State Growth
+
+```
+Current state: ~200GB and growing
+Validators need: RAM for accounts, SSD for ledger
+
+Solutions:
+- State compression (for NFTs)
+- Account cleanup (inactive accounts)
+- Future: State rent collection
+```
+
+## Резюме
+
+- PoH: VDF для trustless timestamping
+- Account model: всё — account (programs, data, tokens)
+- Sealevel: parallel execution по declared accounts
+- Fees: base + priority, ~$0.001-0.03 per tx
+- Trade-off: throughput vs hardware requirements
+- Challenges: outages, state growth, centralization concerns

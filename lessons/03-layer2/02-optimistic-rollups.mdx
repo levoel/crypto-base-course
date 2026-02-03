@@ -1,0 +1,283 @@
+---
+title: "Optimistic Rollups"
+description: "Архитектура Optimistic Rollups: sequencer, fraud proofs, challenge period"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Optimistic Rollups
+
+Optimistic Rollups — тип L2, который **предполагает** валидность транзакций и позволяет оспорить их через **fraud proofs** в течение challenge period.
+
+## Архитектура
+
+<Callout type="info">
+"Optimistic" = оптимистично предполагаем, что всё честно. Если нет — доказываем fraud и откатываем.
+</Callout>
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Optimistic Rollup                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│   Users ──► Sequencer ──► L1 Contract                       │
+│      │          │              │                            │
+│      │    ┌─────┴─────┐        │                            │
+│      │    │           │        │                            │
+│      │  Execute    Batch       │                            │
+│      │  off-chain  txs         │                            │
+│      │    │           │        │                            │
+│      │    └─────┬─────┘        │                            │
+│      │          │              │                            │
+│      │    State Root + Tx Data │                            │
+│      │          │              │                            │
+│      │          ▼              │                            │
+│      │    ┌───────────┐        │                            │
+│      │    │ L1 Inbox  │ ◄──────┘                            │
+│      │    └───────────┘                                     │
+│      │          │                                           │
+│      │    7 day challenge period                            │
+│      │          │                                           │
+│      │          ▼                                           │
+│      │    State Finalized                                   │
+│      │                                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Ключевые компоненты
+
+### 1. Sequencer
+
+Sequencer — оператор, который:
+
+```
+1. Принимает транзакции от пользователей
+2. Упорядочивает их (ordering)
+3. Выполняет и вычисляет новый state root
+4. Публикует batch на L1
+```
+
+<Callout type="warning">
+Централизованный sequencer = single point of failure и potential censorship. Но он НЕ может украсть средства (fraud proofs защищают).
+</Callout>
+
+### 2. L1 Contracts
+
+```solidity
+// Упрощённая схема
+contract RollupInbox {
+    // Sequencer публикует batches сюда
+    function submitBatch(
+        bytes calldata transactions,
+        bytes32 stateRoot,
+        uint256 batchIndex
+    ) external;
+
+    // Пользователь может отправить tx напрямую (force inclusion)
+    function forceInclusion(bytes calldata transaction) external;
+}
+
+contract RollupOutbox {
+    // Challenge window
+    uint256 public constant CHALLENGE_PERIOD = 7 days;
+
+    // Withdrawal после challenge period
+    function executeWithdrawal(
+        bytes32 stateRoot,
+        bytes calldata proof
+    ) external;
+}
+```
+
+### 3. Fraud Proofs
+
+Если sequencer опубликовал неверный state root:
+
+```
+1. Verifier обнаруживает несоответствие
+2. Verifier подаёт challenge на L1
+3. Interactive dispute game:
+   - Bisection protocol сужает до одной инструкции
+   - L1 выполняет эту инструкцию
+   - Определяется победитель
+4. Если fraud подтверждён:
+   - Batch откатывается
+   - Sequencer теряет bond
+   - Challenger получает награду
+```
+
+### Interactive Bisection
+
+```
+Disputed execution: instructions 0-1000
+
+Round 1: Sequencer claims state after instruction 500
+         Challenger disagrees
+         → Dispute narrowed to 0-500 OR 500-1000
+
+Round 2: Narrow to 250 instructions
+Round 3: Narrow to 125 instructions
+...
+Round 10: Single instruction dispute
+         → Execute on L1, determine winner
+
+Complexity: O(log n) rounds instead of O(n) execution
+```
+
+## Arbitrum vs Optimism
+
+| Aspect | Arbitrum One | OP Mainnet |
+|--------|--------------|------------|
+| Fraud Proof | Interactive (multi-round) | Single-round (planned) |
+| VM | ArbOS (EVM compatible) | Cannon (EVM equivalent) |
+| Compression | Custom | EIP-4844 blobs |
+| Decentralization | BOLD (in progress) | Fault proofs live |
+| Governance | ARB token | OP token |
+| Superchain | No | Yes (Base, Zora, etc) |
+
+### Arbitrum Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   Arbitrum One                        │
+├──────────────────────────────────────────────────────┤
+│                                                      │
+│  ┌─────────────┐    ┌─────────────┐                 │
+│  │  Sequencer  │───►│   ArbOS     │                 │
+│  │  (Offchain  │    │  (Geth +    │                 │
+│  │   Labs)     │    │   custom)   │                 │
+│  └─────────────┘    └─────────────┘                 │
+│         │                  │                        │
+│         ▼                  ▼                        │
+│  ┌─────────────────────────────────┐               │
+│  │       Rollup Protocol           │               │
+│  │  - Inbox (tx batches)           │               │
+│  │  - Outbox (withdrawals)         │               │
+│  │  - RollupCore (state roots)     │               │
+│  └─────────────────────────────────┘               │
+│                    │                                │
+│                    ▼                                │
+│              Ethereum L1                            │
+└──────────────────────────────────────────────────────┘
+```
+
+### Optimism (OP Stack)
+
+```
+┌──────────────────────────────────────────────────────┐
+│                  OP Stack Chain                       │
+├──────────────────────────────────────────────────────┤
+│                                                      │
+│  ┌─────────────┐    ┌─────────────┐                 │
+│  │  op-node    │◄──►│  op-geth    │                 │
+│  │ (consensus) │    │ (execution) │                 │
+│  └─────────────┘    └─────────────┘                 │
+│         │                                           │
+│         ▼                                           │
+│  ┌─────────────────────────────────┐               │
+│  │     L1 Contracts (Bedrock)      │               │
+│  │  - OptimismPortal               │               │
+│  │  - L2OutputOracle               │               │
+│  │  - SystemConfig                 │               │
+│  └─────────────────────────────────┘               │
+│                    │                                │
+│                    ▼                                │
+│              Ethereum L1                            │
+│                                                     │
+│  ────────────────────────────────────              │
+│  Superchain: OP + Base + Zora + Mode + ...         │
+└──────────────────────────────────────────────────────┘
+```
+
+## Data Availability
+
+Транзакции должны быть доступны для верификации:
+
+### Pre-EIP-4844 (Calldata)
+
+```
+Cost = 16 gas per non-zero byte
+     = 4 gas per zero byte
+
+1 KB calldata ≈ 16,000 gas
+At 50 gwei: 16,000 * 50 * 10^-9 = 0.0008 ETH ≈ $2
+```
+
+### Post-EIP-4844 (Blobs)
+
+```
+Blob = 128 KB of data
+Target: 3 blobs per block
+Max: 6 blobs per block
+
+Blob gas market (separate from execution gas)
+Target price: ~$0.01-0.05 per blob
+
+Cost reduction: 10-100x cheaper than calldata
+```
+
+## Withdrawal Flow
+
+```
+1. User initiates withdrawal on L2
+       │
+       ▼
+2. Withdrawal tx included in L2 batch
+       │
+       ▼
+3. Batch posted to L1
+       │
+       ▼
+4. Challenge period starts (7 days)
+       │
+       ▼
+5. No valid fraud proof submitted
+       │
+       ▼
+6. User can claim on L1
+
+Alternative: Use bridge with liquidity providers
+- Instant withdrawal
+- Bridge takes L2 funds
+- Bridge gives L1 funds immediately
+- Bridge waits for challenge period
+```
+
+## Данные для анализа
+
+```sql
+-- Arbitrum batch submissions
+SELECT
+    block_number,
+    transaction_hash,
+    from_address as sequencer,
+    input as batch_data,
+    gas_used,
+    LENGTH(input) / 2 as data_bytes
+FROM ethereum.transactions
+WHERE to_address = '0x1c479675ad559dc151f6ec7ed3fbf8cee79582b6'  -- Arbitrum SequencerInbox
+  AND block_timestamp > '2024-01-01'
+ORDER BY block_number DESC
+LIMIT 100;
+
+-- L2 transaction costs
+SELECT
+    DATE(block_timestamp) as date,
+    chain,
+    AVG(gas_price) / 1e9 as avg_gwei,
+    AVG(l1_fee) / 1e18 as avg_l1_fee_eth,
+    AVG(gas_used * gas_price + l1_fee) / 1e18 as avg_total_fee_eth
+FROM l2_transactions
+WHERE chain IN ('arbitrum', 'optimism')
+GROUP BY date, chain
+ORDER BY date DESC;
+```
+
+## Резюме
+
+- Optimistic = assume valid, prove fraud if needed
+- Sequencer: orders, executes, batches txs
+- Fraud proofs: interactive bisection (Arbitrum) или single-round (Optimism)
+- Challenge period: 7 days для withdrawal finality
+- EIP-4844 blobs: 10-100x cheaper data availability
+- OP Stack: modular, Superchain ecosystem (Base, Zora, etc.)

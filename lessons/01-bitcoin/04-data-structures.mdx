@@ -1,0 +1,234 @@
+---
+title: "Data Structures"
+description: "Merkle Trees, Block Headers, Script — структуры данных Bitcoin"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Data Structures в Bitcoin
+
+Понимание структур данных Bitcoin критично для data engineers — это определяет, как эффективно хранить, индексировать и запрашивать blockchain данные.
+
+## Block Structure
+
+<Callout type="info">
+Блок = Block Header (80 bytes) + Transaction Count + Transactions
+</Callout>
+
+### Block Header
+
+```
+┌────────────────────────────────────────────────────┐
+│                  Block Header (80 bytes)           │
+├──────────────┬─────────┬───────────────────────────┤
+│ Field        │ Size    │ Description               │
+├──────────────┼─────────┼───────────────────────────┤
+│ Version      │ 4 bytes │ Block version             │
+│ Prev Hash    │ 32 bytes│ SHA256² предыдущего блока │
+│ Merkle Root  │ 32 bytes│ Корень дерева транзакций  │
+│ Timestamp    │ 4 bytes │ Unix time                 │
+│ Bits         │ 4 bytes │ Compact difficulty target │
+│ Nonce        │ 4 bytes │ PoW counter               │
+└──────────────┴─────────┴───────────────────────────┘
+```
+
+### Практический пример
+
+```python
+import hashlib
+import struct
+
+def double_sha256(data):
+    return hashlib.sha256(hashlib.sha256(data).digest()).digest()
+
+def serialize_header(version, prev_hash, merkle_root, timestamp, bits, nonce):
+    return struct.pack('<I', version) + \
+           bytes.fromhex(prev_hash)[::-1] + \
+           bytes.fromhex(merkle_root)[::-1] + \
+           struct.pack('<III', timestamp, bits, nonce)
+
+# Верифицируем блок 100,000
+header = serialize_header(
+    version=1,
+    prev_hash='000000000002d01c1fccc21636b607dfd930d31d01c3a62104612a1719011250',
+    merkle_root='f3e94742aca4b5ef85488dc37c06c3282295ffec960994b2c0d5ac2a25a95766',
+    timestamp=1293623863,
+    bits=0x1b04864c,
+    nonce=274148111
+)
+
+block_hash = double_sha256(header)[::-1].hex()
+print(f"Block hash: {block_hash}")
+# Output: 000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506
+```
+
+## Merkle Trees
+
+Merkle Tree позволяет эффективно доказать включение транзакции в блок без загрузки всех транзакций.
+
+### Структура
+
+```
+                    ┌───────────────┐
+                    │  Merkle Root  │
+                    │   HABCDEFGH   │
+                    └───────┬───────┘
+              ┌─────────────┴─────────────┐
+        ┌─────┴─────┐               ┌─────┴─────┐
+        │   HABCD   │               │   HEFGH   │
+        └─────┬─────┘               └─────┬─────┘
+       ┌──────┴──────┐           ┌──────┴──────┐
+   ┌───┴───┐    ┌───┴───┐   ┌───┴───┐    ┌───┴───┐
+   │  HAB  │    │  HCD  │   │  HEF  │    │  HGH  │
+   └───┬───┘    └───┬───┘   └───┬───┘    └───┬───┘
+    ┌──┴──┐    ┌──┴──┐     ┌──┴──┐    ┌──┴──┐
+   │HA│ │HB│  │HC│ │HD│   │HE│ │HF│  │HG│ │HH│
+   └──┘ └──┘  └──┘ └──┘   └──┘ └──┘  └──┘ └──┘
+    ↑     ↑    ↑     ↑     ↑     ↑    ↑     ↑
+   TxA   TxB  TxC   TxD   TxE   TxF  TxG   TxH
+```
+
+### Merkle Proof
+
+Чтобы доказать, что TxC включена в блок, нужны только:
+- HC (hash TxC)
+- HD (sibling)
+- HAB (uncle)
+- HEFGH (uncle)
+
+```python
+def verify_merkle_proof(tx_hash, proof, merkle_root):
+    current = tx_hash
+    for (sibling, is_left) in proof:
+        if is_left:
+            current = double_sha256(sibling + current)
+        else:
+            current = double_sha256(current + sibling)
+    return current == merkle_root
+
+# Proof для TxC: [(HD, right), (HAB, left), (HEFGH, right)]
+# Размер proof: O(log n) вместо O(n)
+```
+
+<Callout type="warning">
+SPV кошельки используют Merkle Proofs для верификации транзакций без скачивания полного блока. Размер proof ~800 bytes независимо от количества транзакций.
+</Callout>
+
+## Bitcoin Script
+
+Bitcoin Script — stack-based язык для задания условий траты UTXO.
+
+### Standard Scripts
+
+**P2PKH (Pay to Public Key Hash)** — самый распространённый:
+
+```
+ScriptPubKey (в UTXO):
+OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
+
+ScriptSig (при трате):
+<signature> <publicKey>
+```
+
+Выполнение:
+
+```
+Stack:
+1. Push <signature>        → [sig]
+2. Push <publicKey>        → [sig, pubKey]
+3. OP_DUP                  → [sig, pubKey, pubKey]
+4. OP_HASH160             → [sig, pubKey, hash(pubKey)]
+5. Push <pubKeyHash>       → [sig, pubKey, hash, expectedHash]
+6. OP_EQUALVERIFY         → [sig, pubKey] (или fail)
+7. OP_CHECKSIG            → [true] (или [false])
+```
+
+### Multisig (P2SH)
+
+```
+# 2-of-3 multisig
+ScriptPubKey:
+OP_HASH160 <scriptHash> OP_EQUAL
+
+RedeemScript:
+OP_2 <pubKey1> <pubKey2> <pubKey3> OP_3 OP_CHECKMULTISIG
+
+ScriptSig:
+OP_0 <sig1> <sig2> <redeemScript>
+```
+
+## Индексация для Data Engineering
+
+### Рекомендуемые индексы
+
+```sql
+-- Основные таблицы
+CREATE TABLE blocks (
+    height BIGINT PRIMARY KEY,
+    hash CHAR(64) UNIQUE,
+    prev_hash CHAR(64),
+    merkle_root CHAR(64),
+    timestamp TIMESTAMP,
+    difficulty DECIMAL,
+    nonce BIGINT,
+    tx_count INT,
+    size INT
+);
+
+CREATE TABLE transactions (
+    txid CHAR(64) PRIMARY KEY,
+    block_height BIGINT REFERENCES blocks(height),
+    tx_index INT,
+    version INT,
+    locktime BIGINT,
+    size INT,
+    fee BIGINT
+);
+
+CREATE TABLE outputs (
+    txid CHAR(64),
+    output_index INT,
+    value BIGINT,
+    script_type VARCHAR(20),
+    address VARCHAR(100),
+    spent_txid CHAR(64),
+    spent_input_index INT,
+    PRIMARY KEY (txid, output_index)
+);
+
+-- Индексы для типичных запросов
+CREATE INDEX idx_outputs_address ON outputs(address);
+CREATE INDEX idx_outputs_unspent ON outputs(address) WHERE spent_txid IS NULL;
+CREATE INDEX idx_tx_block ON transactions(block_height);
+```
+
+### Оптимизация запросов
+
+```sql
+-- Баланс адреса (сумма UTXO)
+SELECT SUM(value)
+FROM outputs
+WHERE address = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa'
+  AND spent_txid IS NULL;
+
+-- История транзакций
+SELECT t.txid, t.block_height, o.value,
+       CASE WHEN o.address = ? THEN 'in' ELSE 'out' END as direction
+FROM transactions t
+JOIN outputs o ON t.txid = o.txid OR t.txid = o.spent_txid
+WHERE o.address = ?
+ORDER BY t.block_height DESC;
+```
+
+## Резюме
+
+| Структура | Назначение | Data Engineering применение |
+|-----------|------------|----------------------------|
+| Block Header | Идентификация блока, PoW | Primary key, parent-child relation |
+| Merkle Tree | Proof of inclusion | SPV verification, light indexing |
+| UTXO | Текущее состояние | Balance queries, graph analysis |
+| Script | Условия траты | Address extraction, contract detection |
+
+- Block header всегда 80 bytes — эффективно хранить и индексировать
+- Merkle proof = O(log n) — скейлится для любого размера блока
+- Script parsing нужен для извлечения адресов и типов транзакций

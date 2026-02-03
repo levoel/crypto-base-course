@@ -1,0 +1,241 @@
+---
+title: "Scaling Problem"
+description: "Проблема масштабирования блокчейнов: blockchain trilemma, throughput limits, scaling approaches"
+difficulty: "intermediate"
+timeToComplete: 15
+---
+
+# The Scaling Problem
+
+Ethereum mainnet обрабатывает ~15 TPS (транзакций в секунду). Visa обрабатывает ~65,000 TPS. Как масштабировать блокчейн без потери decentralization и security?
+
+## Blockchain Trilemma
+
+<Callout type="info">
+Blockchain Trilemma (Vitalik Buterin): невозможно одновременно максимизировать Decentralization, Security и Scalability. Приходится выбирать 2 из 3.
+</Callout>
+
+```
+                    Decentralization
+                          ▲
+                         /|\
+                        / | \
+                       /  |  \
+                      /   |   \
+                     /    |    \
+                    /     |     \
+                   /      |      \
+                  /       |       \
+                 /________|________\
+           Security ←───────────→ Scalability
+
+Bitcoin, Ethereum L1: Decentralization + Security
+Solana, BSC:          Security + Scalability
+Traditional DB:       Scalability + Decentralization (centralized)
+```
+
+### Trade-offs
+
+| Blockchain | TPS | Block Time | Node Requirements | Validators |
+|------------|-----|------------|-------------------|------------|
+| Bitcoin | 7 | 10 min | 500GB disk | ~15,000 |
+| Ethereum L1 | 15-30 | 12 sec | 2TB SSD | ~800,000 |
+| Solana | 3,000+ | 400ms | 256GB RAM, 10Gbps | ~2,000 |
+| BSC | 300 | 3 sec | High | 21 |
+
+## Почему Ethereum медленный?
+
+### 1. State Growth
+
+```
+Every node must:
+- Store full state (~300GB)
+- Execute every transaction
+- Validate every state transition
+
+More TPS → More state → Harder to run node → Less decentralization
+```
+
+### 2. Block Gas Limit
+
+```
+Block gas limit: ~30M gas
+Simple transfer: ~21,000 gas
+ERC20 transfer: ~65,000 gas
+
+Max transfers per block: 30M / 21,000 ≈ 1,400
+Blocks per second: 1/12
+
+TPS = 1,400 / 12 ≈ 116 (theoretical max for simple transfers)
+TPS = 30M / 65,000 / 12 ≈ 38 (ERC20 transfers)
+Real-world mix: ~15-30 TPS
+```
+
+### 3. Consensus Overhead
+
+```
+PoS Ethereum:
+- Slot: 12 seconds
+- Epoch: 32 slots = 6.4 minutes
+- Finality: 2 epochs ≈ 13 minutes
+
+Faster blocks → More orphans → Less security
+```
+
+## Scaling Approaches
+
+### Vertical Scaling (Layer 1)
+
+```
+┌─────────────────────────────────────────────────┐
+│              Vertical Scaling                    │
+├─────────────────────────────────────────────────┤
+│ ↑ Bigger blocks                                 │
+│ ↑ Faster blocks                                 │
+│ ↑ More powerful nodes                           │
+├─────────────────────────────────────────────────┤
+│ ❌ Reduces decentralization                     │
+│ ❌ State grows faster                           │
+│ ❌ Higher node requirements                     │
+└─────────────────────────────────────────────────┘
+```
+
+### Horizontal Scaling (Sharding)
+
+```
+┌─────────────────────────────────────────────────┐
+│             Sharding (Danksharding)              │
+├─────────────────────────────────────────────────┤
+│ Split state into multiple "shards"              │
+│ Each shard processed in parallel                │
+│ Cross-shard communication via beacon chain      │
+├─────────────────────────────────────────────────┤
+│ ✅ Scales with number of shards                 │
+│ ❌ Cross-shard txs complex                      │
+│ ❌ Implementation challenging                   │
+└─────────────────────────────────────────────────┘
+```
+
+### Layer 2 Scaling
+
+```
+┌─────────────────────────────────────────────────┐
+│               Layer 2 Solutions                  │
+├─────────────────────────────────────────────────┤
+│ Execute transactions off-chain                  │
+│ Post proofs/data to L1                          │
+│ Inherit L1 security guarantees                  │
+├─────────────────────────────────────────────────┤
+│ ✅ Doesn't change L1                            │
+│ ✅ Multiple L2s in parallel                     │
+│ ✅ Different trade-offs per L2                  │
+│ ⚠️  Composability between L2s limited          │
+└─────────────────────────────────────────────────┘
+```
+
+<Callout type="info">
+Ethereum's roadmap: "Rollup-centric" — L1 optimized for data availability, L2s handle execution.
+</Callout>
+
+## Layer 2 Categories
+
+### State Channels
+
+```
+Alice ─────► Channel Contract ◄───── Bob
+              │
+              │ (off-chain messages)
+              ▼
+Alice ◄─────────────────────────────► Bob
+              │
+              │ (final state on-chain)
+              ▼
+Alice ─────► Channel Contract ◄───── Bob
+```
+
+- **Example**: Lightning Network (Bitcoin), Raiden (Ethereum)
+- **Pros**: Instant finality, minimal fees
+- **Cons**: Requires both parties online, limited use cases
+
+### Plasma
+
+```
+L1 (Ethereum)
+    │
+    └──► Plasma Contract
+              │
+              ▼
+        Plasma Chain (operator)
+              │
+         ┌────┴────┐
+         │         │
+       Block     Block
+       [txs]     [txs]
+              │
+              ▼
+         Merkle Root → L1
+```
+
+- **Pros**: High throughput
+- **Cons**: Exit games complex, data availability issues
+
+### Rollups (Current Standard)
+
+```
+L1 (Ethereum)
+    │
+    └──► Rollup Contract
+              │
+              ▼
+        Sequencer
+              │
+         ┌────┴────┐
+         │         │
+    Execute txs   Batch txs
+         │         │
+         └────┬────┘
+              │
+              ▼
+    Post batch + proof/data to L1
+```
+
+- **Optimistic Rollups**: Assume valid, fraud proofs if challenged
+- **ZK Rollups**: Prove validity cryptographically
+
+## Current L2 Landscape
+
+| L2 | Type | TPS | Finality | TVL |
+|----|------|-----|----------|-----|
+| Arbitrum One | Optimistic | ~40 | 7 days* | $10B+ |
+| Optimism | Optimistic | ~30 | 7 days* | $7B+ |
+| Base | Optimistic | ~30 | 7 days* | $5B+ |
+| zkSync Era | ZK | ~100 | Minutes | $500M+ |
+| Polygon zkEVM | ZK | ~50 | Minutes | $100M+ |
+| Linea | ZK | ~50 | Minutes | $300M+ |
+
+*7 days = challenge period for fraud proofs. Practical finality faster with sequencer confirmation.
+
+## Данные для анализа
+
+```sql
+-- L2 activity comparison
+SELECT
+    chain,
+    DATE(block_timestamp) as date,
+    COUNT(*) as tx_count,
+    COUNT(DISTINCT from_address) as unique_users,
+    SUM(gas_used * gas_price) / 1e18 as total_fees_eth
+FROM multi_chain.transactions
+WHERE chain IN ('arbitrum', 'optimism', 'base', 'zksync')
+  AND block_timestamp > '2024-01-01'
+GROUP BY chain, DATE(block_timestamp)
+ORDER BY date DESC, tx_count DESC;
+```
+
+## Резюме
+
+- Blockchain trilemma: trade-off между decentralization, security, scalability
+- Ethereum L1: ~15-30 TPS, limited by state growth и gas limit
+- L2 solutions: execute off-chain, inherit L1 security
+- Rollups — доминирующий подход: Optimistic (fraud proofs) vs ZK (validity proofs)
+- "Rollup-centric" roadmap: L1 для data availability, L2 для execution

@@ -1,0 +1,283 @@
+---
+title: "Smart Contracts"
+description: "Smart contracts в Ethereum: deployment, interaction, common patterns"
+difficulty: "intermediate"
+timeToComplete: 20
+---
+
+# Smart Contracts
+
+Smart contract — программа, хранящаяся в блокчейне и выполняемая EVM. Для data engineer важно понимать, как извлекать и анализировать данные из контрактов.
+
+## Contract Lifecycle
+
+<Callout type="info">
+Контракт = bytecode + storage + balance. После deployment bytecode immutable (кроме proxy patterns).
+</Callout>
+
+### Deployment
+
+```
+1. Compile Solidity → Bytecode
+   │
+   └─▶ Creation code (init + runtime code)
+
+2. Send transaction with:
+   - to: null (contract creation)
+   - data: creation code
+   - value: initial ETH (optional)
+
+3. EVM executes creation code:
+   - Runs constructor
+   - Returns runtime code
+
+4. Runtime code stored at new address:
+   - Address = keccak256(sender, nonce)[12:]
+   - Or CREATE2: keccak256(0xff, sender, salt, keccak256(init_code))[12:]
+```
+
+### Contract Address Prediction
+
+```python
+from eth_utils import keccak, to_checksum_address
+
+# CREATE (deterministic by nonce)
+def predict_create_address(sender: str, nonce: int) -> str:
+    import rlp
+    sender_bytes = bytes.fromhex(sender[2:])
+    encoded = rlp.encode([sender_bytes, nonce])
+    return to_checksum_address(keccak(encoded)[12:])
+
+# CREATE2 (deterministic by salt + code)
+def predict_create2_address(sender: str, salt: bytes, init_code: bytes) -> str:
+    data = b'\xff' + bytes.fromhex(sender[2:]) + salt + keccak(init_code)
+    return to_checksum_address(keccak(data)[12:])
+
+# Пример: Uniswap V2 pair address
+factory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"
+token0 = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"  # WETH
+token1 = "0x6B175474E89094C44Da98b954EesdeB131e540823D"  # DAI
+salt = keccak(token0_bytes + token1_bytes)
+pair_address = predict_create2_address(factory, salt, PAIR_INIT_CODE)
+```
+
+## ABI (Application Binary Interface)
+
+ABI определяет, как кодировать вызовы функций:
+
+```json
+{
+  "name": "transfer",
+  "type": "function",
+  "inputs": [
+    {"name": "to", "type": "address"},
+    {"name": "amount", "type": "uint256"}
+  ],
+  "outputs": [{"name": "", "type": "bool"}],
+  "stateMutability": "nonpayable"
+}
+```
+
+### Function Selector
+
+```python
+# Selector = первые 4 bytes keccak256(signature)
+signature = "transfer(address,uint256)"
+selector = keccak256(signature.encode())[:4]
+# Result: 0xa9059cbb
+```
+
+### Calldata Encoding
+
+```
+transfer(0x742d35Cc6634C0532925a3b844Bc454e4438f44E, 1000000)
+
+Calldata:
+0xa9059cbb                                                       # selector
+000000000000000000000000742d35Cc6634C0532925a3b844Bc454e4438f44E # to (padded)
+00000000000000000000000000000000000000000000000000000000000f4240 # amount
+```
+
+## Event Logs
+
+Events — основной источник данных для analytics:
+
+```solidity
+event Transfer(
+    address indexed from,
+    address indexed to,
+    uint256 value
+);
+
+// Emit
+emit Transfer(msg.sender, recipient, amount);
+```
+
+### Log Structure
+
+```
+Log {
+    address: contract_address,
+    topics: [
+        keccak256("Transfer(address,address,uint256)"),  // topic0
+        from_address (padded to 32 bytes),                // topic1
+        to_address (padded to 32 bytes)                   // topic2
+    ],
+    data: amount (32 bytes)
+}
+```
+
+<Callout type="warning">
+Indexed параметры попадают в topics (макс 4). Non-indexed — в data. Topics индексируются для быстрого поиска.
+</Callout>
+
+### Common Event Signatures
+
+```python
+SIGNATURES = {
+    # ERC20
+    "Transfer(address,address,uint256)": "0xddf252ad...",
+    "Approval(address,address,uint256)": "0x8c5be1e5...",
+
+    # Uniswap V2
+    "Swap(address,uint256,uint256,uint256,uint256,address)": "0xd78ad95f...",
+    "Sync(uint112,uint112)": "0x1c411e9a...",
+
+    # Uniswap V3
+    "Swap(address,address,int256,int256,uint160,uint128,int24)": "0xc42079f9...",
+
+    # ERC721
+    "Transfer(address,address,uint256)": "0xddf252ad...",  # Same as ERC20!
+}
+```
+
+## Common Contract Patterns
+
+### 1. ERC20 Token
+
+```solidity
+interface IERC20 {
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+```
+
+### 2. Proxy Pattern
+
+```
+┌─────────────────┐     delegatecall     ┌─────────────────┐
+│      Proxy      │ ───────────────────▶ │ Implementation  │
+│  (storage here) │                      │  (logic here)   │
+│   address impl  │                      │                 │
+└─────────────────┘                      └─────────────────┘
+
+User tx → Proxy → delegatecall(impl) → Logic executes in Proxy context
+                                       → Storage modified in Proxy
+```
+
+<Callout type="info">
+Proxy contracts позволяют upgrades. Implementation address хранится в storage slot: `keccak256("eip1967.proxy.implementation") - 1`
+</Callout>
+
+### 3. Factory Pattern
+
+```solidity
+contract PairFactory {
+    mapping(address => mapping(address => address)) public getPair;
+
+    function createPair(address tokenA, address tokenB) external returns (address pair) {
+        // CREATE2 for deterministic address
+        bytes32 salt = keccak256(abi.encodePacked(tokenA, tokenB));
+        pair = address(new Pair{salt: salt}(tokenA, tokenB));
+        getPair[tokenA][tokenB] = pair;
+        getPair[tokenB][tokenA] = pair;
+    }
+}
+```
+
+## Decoding Contract Data
+
+### Transaction Input
+
+```python
+from web3 import Web3
+
+def decode_transfer(input_data: str):
+    """Decode ERC20 transfer calldata"""
+    selector = input_data[:10]
+    assert selector == "0xa9059cbb", "Not a transfer"
+
+    to = "0x" + input_data[34:74]
+    amount = int(input_data[74:138], 16)
+    return {"to": to, "amount": amount}
+
+# Example
+tx_input = "0xa9059cbb000000000000000000000000742d35cc6634c0532925a3b844bc454e4438f44e00000000000000000000000000000000000000000000000000000000000f4240"
+result = decode_transfer(tx_input)
+# {'to': '0x742d35Cc6634C0532925a3b844Bc454e4438f44E', 'amount': 1000000}
+```
+
+### Log Decoding
+
+```python
+def decode_transfer_log(log):
+    """Decode ERC20 Transfer event"""
+    TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+    if log['topics'][0].hex() != TRANSFER_TOPIC:
+        return None
+
+    from_addr = "0x" + log['topics'][1].hex()[26:]
+    to_addr = "0x" + log['topics'][2].hex()[26:]
+    amount = int.from_bytes(log['data'], 'big')
+
+    return {
+        "from": Web3.to_checksum_address(from_addr),
+        "to": Web3.to_checksum_address(to_addr),
+        "amount": amount
+    }
+```
+
+## SQL Analysis
+
+```sql
+-- Все Transfer events за день
+SELECT
+    block_number,
+    transaction_hash,
+    address as token_contract,
+    CONCAT('0x', SUBSTR(topic1, 27)) as from_address,
+    CONCAT('0x', SUBSTR(topic2, 27)) as to_address,
+    CONV(data, 16, 10) as amount
+FROM ethereum.logs
+WHERE topic0 = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+  AND block_timestamp >= '2024-01-01'
+  AND block_timestamp < '2024-01-02';
+
+-- Top token transfers by volume
+SELECT
+    address as token,
+    COUNT(*) as transfer_count,
+    COUNT(DISTINCT CONCAT('0x', SUBSTR(topic1, 27))) as unique_senders
+FROM ethereum.logs
+WHERE topic0 = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+GROUP BY address
+ORDER BY transfer_count DESC
+LIMIT 20;
+```
+
+## Резюме
+
+- Smart contract = bytecode (immutable) + storage (mutable)
+- ABI defines function encoding; selector = keccak256(sig)[:4]
+- Events/Logs — primary data source; indexed → topics, non-indexed → data
+- Common patterns: ERC20, Proxy, Factory
+- Decoding requires ABI or known signatures
+- Proxy contracts: storage in proxy, logic in implementation
