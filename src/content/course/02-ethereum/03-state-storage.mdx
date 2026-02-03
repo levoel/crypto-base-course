@@ -46,7 +46,7 @@ uniswap = AccountState(
 Storage — persistent key-value store для контрактов:
 
 ```
-Storage = Map<uint256, uint256>
+Storage = `Map<uint256, uint256>`
 Key:   32 bytes (slot number)
 Value: 32 bytes
 ```
@@ -286,8 +286,8 @@ ORDER BY block_number DESC;
 
 ## Резюме
 
-- World State = Map<Address, Account>
-- Contract Storage = Map<uint256, uint256> (slot → value)
+- World State = `Map<Address, Account>`
+- Contract Storage = `Map<uint256, uint256>` (slot → value)
 - Storage layout: fixed slots + dynamic (keccak256 для arrays/mappings)
 - State Trie = Modified Merkle Patricia Trie (~300GB)
 - State diff более эффективен для analytics чем full state
