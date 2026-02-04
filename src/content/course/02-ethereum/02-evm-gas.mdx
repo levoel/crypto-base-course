@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 25
 ---
 
-import { EVMExecutionDiagram, GasModelDiagram } from '../../../components/diagrams/EthereumDiagrams';
+import { EVMExecutionDiagram, GasModelDiagram, EIP1559FeeDiagram } from '../../../components/diagrams/EthereumDiagrams';
 
 # EVM & Gas
 
@@ -140,25 +140,7 @@ base_cost = 21000 (simple transfer)
 
 ### EIP-1559 Fee Model
 
-```
-┌─────────────────────────────────────────────────┐
-│           EIP-1559 Fee Structure                │
-├─────────────────────────────────────────────────┤
-│                                                 │
-│  max_fee = max_priority_fee + base_fee          │
-│                                                 │
-│  ┌─────────────────┐                           │
-│  │ Priority Fee    │ → Validator (tip)          │
-│  │ (max_priority)  │                           │
-│  ├─────────────────┤                           │
-│  │ Base Fee        │ → BURNED                   │
-│  │ (protocol)      │                           │
-│  └─────────────────┘                           │
-│                                                 │
-│  actual_fee = gas_used * (base_fee + tip)       │
-│  refund = (max_fee - actual) * gas_used         │
-└─────────────────────────────────────────────────┘
-```
+<EIP1559FeeDiagram client:load />
 
 ### Base Fee Adjustment
 

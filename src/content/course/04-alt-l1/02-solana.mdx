@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
+import { SolanaInnovationsDiagram, AccountOwnershipDiagram } from '../../../components/diagrams/AltL1Diagrams';
+
 # Solana Architecture
 
 Solana — радикально другой подход к blockchain design. В то время как Ethereum оптимизирует для decentralization (любой может запустить ноду на домашнем компьютере), Solana оптимизирует для **raw throughput** за счёт требовательного hardware.
@@ -31,22 +33,7 @@ Solana's key insight: время — bottleneck для консенсуса. Pro
 
 Каждая инновация решает конкретный bottleneck в blockchain throughput. Вместе они создают synergetic effect.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  Solana's 8 Innovations                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1. Proof of History (PoH)     - Verifiable delay function  │
-│  2. Tower BFT                  - PoH-optimized consensus    │
-│  3. Turbine                    - Block propagation protocol │
-│  4. Gulf Stream                - Mempool-less tx forwarding │
-│  5. Sealevel                   - Parallel smart contracts   │
-│  6. Pipelining                 - Validation optimization    │
-│  7. Cloudbreak                 - Horizontal state scaling   │
-│  8. Archivers                  - Distributed ledger storage │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<SolanaInnovationsDiagram client:load />
 
 ## Proof of History
 
@@ -128,34 +115,7 @@ pub struct Account {
 
 В Solana есть иерархия ownership. System Program владеет "обычными" SOL accounts. Token Program владеет token accounts. Custom programs владеют своими data accounts. Только owner может модифицировать account data.
 
-```
-┌───────────────────────────────────────────────────────────┐
-│                    Account Ownership                       │
-├───────────────────────────────────────────────────────────┤
-│                                                           │
-│  System Program (owns SOL accounts)                       │
-│       │                                                   │
-│       └──► User Wallet Account                            │
-│            - lamports: 1_000_000_000                      │
-│            - data: []                                     │
-│            - owner: System Program                        │
-│                                                           │
-│  Token Program (owns token accounts)                      │
-│       │                                                   │
-│       └──► Token Account                                  │
-│            - lamports: 2_039_280 (rent)                   │
-│            - data: [mint, owner, amount, ...]            │
-│            - owner: Token Program                         │
-│                                                           │
-│  Custom Program (owns custom accounts)                    │
-│       │                                                   │
-│       └──► PDA Account                                    │
-│            - lamports: rent_exempt                        │
-│            - data: [custom_state]                        │
-│            - owner: Custom Program                        │
-│                                                           │
-└───────────────────────────────────────────────────────────┘
-```
+<AccountOwnershipDiagram client:load />
 
 ## Sealevel: Parallel Execution
 

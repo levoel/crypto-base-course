@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 15
 ---
 
+import { PoSVariantsDiagram, ValidatorConcentrationDiagram } from '../../../components/diagrams/AltL1Diagrams';
+
 # L1 Trade-offs
 
 Почему существует так много блокчейнов? Потому что **нет идеального решения** blockchain trilemma. Каждый L1 — это эксперимент с разными точками в пространстве trade-offs. Ethereum выбрал максимальную decentralization и security, жертвуя throughput. Другие chains делают противоположный выбор.
@@ -44,33 +46,7 @@ timeToComplete: 15
 
 Почти все современные L1 используют PoS, но реализации радикально различаются. Ethereum's Gasper оптимизирован для максимальной decentralization (800K+ валидаторов). Tendermint оптимизирован для instant finality (но ограничен ~180 валидаторами). Solana's PoH+Tower BFT оптимизирован для throughput.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│               PoS Consensus Variants                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Ethereum (Gasper):                                         │
-│  - Casper FFG (finality) + LMD-GHOST (fork choice)         │
-│  - 12 sec blocks, 13 min finality                          │
-│  - 800K+ validators, highly decentralized                  │
-│                                                             │
-│  Tendermint (Cosmos, BNB):                                  │
-│  - BFT-based, 2/3 majority for finality                    │
-│  - Instant finality (1-6 seconds)                          │
-│  - Limited validator set (21-180)                          │
-│                                                             │
-│  Proof of History (Solana):                                 │
-│  - VDF-based timestamping + Tower BFT                      │
-│  - 400ms block time                                        │
-│  - Requires specialized hardware                           │
-│                                                             │
-│  GRANDPA + BABE (Polkadot):                                 │
-│  - Hybrid: probabilistic + deterministic finality          │
-│  - BABE for block production, GRANDPA for finality         │
-│  - 12 sec target block time                                │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<PoSVariantsDiagram client:load />
 
 ### Finality Trade-offs
 
@@ -164,21 +140,7 @@ Cosmos (typical):
 
 ### Validator Concentration
 
-```
-Ethereum:              Solana:                Cosmos Hub:
-┌────────────────┐    ┌────────────────┐     ┌────────────────┐
-│ Lido: 29%      │    │ Helius: 5%     │     │ Top 10: ~35%   │
-│ Coinbase: 9%   │    │ Jump: 4%       │     │                │
-│ Kraken: 3%     │    │ Figment: 3%    │     │                │
-│ ...            │    │ ...            │     │                │
-│                │    │                │     │                │
-│ 800K validators│    │ ~2K validators │     │ ~180 validators│
-└────────────────┘    └────────────────┘     └────────────────┘
-
-Nakamoto coefficient (nodes to halt):
-Ethereum: ~3          Solana: ~20             Cosmos: ~7
-(controversial metrics)
-```
+<ValidatorConcentrationDiagram client:load />
 
 ## Smart Contract Models
 

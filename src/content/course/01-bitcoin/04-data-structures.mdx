@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
+import { MerkleTreeDetailedDiagram, ScriptExecutionDiagram, BlockStructureDiagram } from '../../../components/diagrams/BitcoinDiagrams';
+
 # Data Structures в Bitcoin
 
 Понимание структур данных Bitcoin критично для data engineers — это определяет, как эффективно хранить, индексировать и запрашивать blockchain данные. Bitcoin использует несколько элегантных структур данных, которые обеспечивают целостность, компактность и эффективную верификацию.
@@ -24,20 +26,7 @@ timeToComplete: 20
 
 ### Block Header
 
-```
-┌────────────────────────────────────────────────────┐
-│                  Block Header (80 bytes)           │
-├──────────────┬─────────┬───────────────────────────┤
-│ Field        │ Size    │ Description               │
-├──────────────┼─────────┼───────────────────────────┤
-│ Version      │ 4 bytes │ Block version             │
-│ Prev Hash    │ 32 bytes│ SHA256² предыдущего блока │
-│ Merkle Root  │ 32 bytes│ Корень дерева транзакций  │
-│ Timestamp    │ 4 bytes │ Unix time                 │
-│ Bits         │ 4 bytes │ Compact difficulty target │
-│ Nonce        │ 4 bytes │ PoW counter               │
-└──────────────┴─────────┴───────────────────────────┘
-```
+<BlockStructureDiagram client:load />
 
 ### Практический пример
 
@@ -79,25 +68,7 @@ Merkle Tree — бинарное дерево хешей, изобретённо
 
 ### Структура
 
-```
-                    ┌───────────────┐
-                    │  Merkle Root  │
-                    │   HABCDEFGH   │
-                    └───────┬───────┘
-              ┌─────────────┴─────────────┐
-        ┌─────┴─────┐               ┌─────┴─────┐
-        │   HABCD   │               │   HEFGH   │
-        └─────┬─────┘               └─────┬─────┘
-       ┌──────┴──────┐           ┌──────┴──────┐
-   ┌───┴───┐    ┌───┴───┐   ┌───┴───┐    ┌───┴───┐
-   │  HAB  │    │  HCD  │   │  HEF  │    │  HGH  │
-   └───┬───┘    └───┬───┘   └───┬───┘    └───┬───┘
-    ┌──┴──┐    ┌──┴──┐     ┌──┴──┐    ┌──┴──┐
-   │HA│ │HB│  │HC│ │HD│   │HE│ │HF│  │HG│ │HH│
-   └──┘ └──┘  └──┘ └──┘   └──┘ └──┘  └──┘ └──┘
-    ↑     ↑    ↑     ↑     ↑     ↑    ↑     ↑
-   TxA   TxB  TxC   TxD   TxE   TxF  TxG   TxH
-```
+<MerkleTreeDetailedDiagram client:load />
 
 ### Merkle Proof
 
@@ -147,16 +118,7 @@ ScriptSig (при трате):
 
 Выполнение:
 
-```
-Stack:
-1. Push <signature>        → [sig]
-2. Push <publicKey>        → [sig, pubKey]
-3. OP_DUP                  → [sig, pubKey, pubKey]
-4. OP_HASH160             → [sig, pubKey, hash(pubKey)]
-5. Push <pubKeyHash>       → [sig, pubKey, hash, expectedHash]
-6. OP_EQUALVERIFY         → [sig, pubKey] (или fail)
-7. OP_CHECKSIG            → [true] (или [false])
-```
+<ScriptExecutionDiagram client:load />
 
 ### Multisig (P2SH)
 

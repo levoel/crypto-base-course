@@ -5,6 +5,8 @@ difficulty: "advanced"
 timeToComplete: 25
 ---
 
+import { ZkEVMSpectrumDiagram } from '../../../components/diagrams/Layer2Diagrams';
+
 # ZK Rollups
 
 ZK Rollups представляют "следующее поколение" L2 scaling. Вместо fraud proofs (докажи, что неверно) они используют **validity proofs** (докажи, что верно). Каждый batch сопровождается криптографическим доказательством, которое **математически гарантирует** корректность всех транзакций.
@@ -121,40 +123,7 @@ Vitalik Buterin предложил классификацию zkEVM по уро�
 
 ### zkEVM Types (Vitalik's classification)
 
-```
-┌────────────────────────────────────────────────────────────┐
-│                    zkEVM Spectrum                           │
-├────────────────────────────────────────────────────────────┤
-│                                                            │
-│  Type 1: Fully Ethereum-equivalent                         │
-│  ├─ Proves actual Ethereum blocks                          │
-│  ├─ No modifications to Ethereum                           │
-│  └─ Examples: (in development)                             │
-│                                                            │
-│  Type 2: Fully EVM-equivalent                              │
-│  ├─ Same EVM, different state/block structure              │
-│  ├─ 100% Solidity compatible                               │
-│  └─ Examples: Scroll, Polygon zkEVM                        │
-│                                                            │
-│  Type 2.5: EVM-equivalent except gas costs                 │
-│  ├─ Different gas costs for some opcodes                   │
-│  └─ Examples: Scroll (current)                             │
-│                                                            │
-│  Type 3: Almost EVM-equivalent                             │
-│  ├─ Most contracts work                                    │
-│  ├─ Some edge cases differ                                 │
-│  └─ Examples: (transitional)                               │
-│                                                            │
-│  Type 4: High-level language equivalent                    │
-│  ├─ Compiles Solidity/Vyper to ZK-friendly VM              │
-│  ├─ Different bytecode                                     │
-│  └─ Examples: zkSync Era, StarkNet (Cairo)                 │
-│                                                            │
-│                                                            │
-│  ◄────────────────────────────────────────────────────────►│
-│  More compatible                              Faster proofs │
-└────────────────────────────────────────────────────────────┘
-```
+<ZkEVMSpectrumDiagram client:load />
 
 ### zkSync Era (Type 4)
 

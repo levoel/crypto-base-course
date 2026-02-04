@@ -5,6 +5,8 @@ difficulty: "advanced"
 timeToComplete: 20
 ---
 
+import { DataWithholdingDiagram, DankshardingDiagram } from '../../../components/diagrams/Layer2Diagrams';
+
 # Data Availability
 
 Data Availability (DA) — одна из самых тонких и важных проблем в design rollups. Вопрос простой: **где хранить данные транзакций?** Ответ определяет security model, стоимость, и trade-offs всей системы.
@@ -31,25 +33,7 @@ DA problem — это **вопрос доверия**. Rollup sequencer публ
 
 Это классическая атака на rollups: sequencer публикует state root, но **не публикует данные**. State root выглядит валидным, но никто не может его верифицировать.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 Data Withholding Attack                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Malicious Sequencer:                                       │
-│                                                             │
-│  1. Execute transaction: Alice → Bob 100 ETH                │
-│  2. Post state root to L1: "new_state_root"                │
-│  3. DON'T post transaction data                            │
-│                                                             │
-│  Result:                                                    │
-│  - L1 knows new state root                                  │
-│  - Nobody can verify it's correct                           │
-│  - Alice can't prove she still has funds                    │
-│  - Validators can't generate fraud proof                    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<DataWithholdingDiagram client:load />
 
 ## Ethereum DA (Pre-EIP-4844)
 
@@ -145,27 +129,7 @@ Reduction: 10-100x cheaper!
 
 EIP-4844 — это **proto**-danksharding. Full danksharding увеличит DA capacity в **10-100x** через Data Availability Sampling (DAS).
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Full Danksharding                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Current (EIP-4844):                                        │
-│  - 6 blobs max per block                                    │
-│  - All nodes download all blobs                             │
-│  - ~768 KB/block for rollups                                │
-│                                                             │
-│  Full Danksharding:                                         │
-│  - 64+ blobs per block                                      │
-│  - Data Availability Sampling (DAS)                         │
-│  - ~16 MB/block for rollups                                 │
-│                                                             │
-│  DAS: Nodes sample random blob chunks                       │
-│       Probabilistic guarantee of availability               │
-│       No node needs ALL data                                │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<DankshardingDiagram client:load />
 
 ### Data Availability Sampling (DAS)
 

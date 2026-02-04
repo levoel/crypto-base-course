@@ -202,6 +202,269 @@ export function OptimisticVsZKDiagram() {
   );
 }
 
+export function VerticalScalingDiagram() {
+  return (
+    <DiagramContainer title="Vertical Scaling" color="amber">
+      <div className="flex flex-col gap-3">
+        <div className="text-center text-gray-400 text-sm mb-2">Trade-offs</div>
+        <div className="space-y-2">
+          <Tooltip content={<div><strong>Bigger blocks</strong><p className="mt-1">Больше транзакций per block, но дольше propagation</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-4 py-2 cursor-help text-center">
+              <span className="text-amber-300">↑ Bigger blocks</span>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Faster blocks</strong><p className="mt-1">Меньше latency, но больше orphan blocks</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-4 py-2 cursor-help text-center">
+              <span className="text-amber-300">↑ Faster blocks</span>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Powerful nodes</strong><p className="mt-1">Больше throughput, но меньше decentralization</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-4 py-2 cursor-help text-center">
+              <span className="text-amber-300">↑ More powerful nodes</span>
+            </div>
+          </Tooltip>
+        </div>
+        <div className="border-t border-gray-700 mt-2 pt-2 space-y-1 text-sm">
+          <div className="text-rose-400">❌ Reduces decentralization</div>
+          <div className="text-rose-400">❌ State grows faster</div>
+          <div className="text-rose-400">❌ Higher node requirements</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ShardingDiagram() {
+  return (
+    <DiagramContainer title="Sharding (Danksharding)" color="blue">
+      <div className="flex flex-col gap-3">
+        <div className="space-y-2">
+          <Tooltip content={<div><strong>State splitting</strong><p className="mt-1">Разделение данных на независимые части</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded px-4 py-2 cursor-help text-center">
+              Split state into multiple "shards"
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Parallel processing</strong><p className="mt-1">Каждый shard обрабатывается независимо</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded px-4 py-2 cursor-help text-center">
+              Each shard processed in parallel
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Beacon chain</strong><p className="mt-1">Координация через consensus layer</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded px-4 py-2 cursor-help text-center">
+              Cross-shard via beacon chain
+            </div>
+          </Tooltip>
+        </div>
+        <div className="border-t border-gray-700 mt-2 pt-2 space-y-1 text-sm">
+          <div className="text-green-400">✅ Scales with number of shards</div>
+          <div className="text-rose-400">❌ Cross-shard txs complex</div>
+          <div className="text-rose-400">❌ Implementation challenging</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function L2SolutionsDiagram() {
+  return (
+    <DiagramContainer title="Layer 2 Solutions" color="green">
+      <div className="flex flex-col gap-3">
+        <div className="space-y-2">
+          <Tooltip content={<div><strong>Off-chain execution</strong><p className="mt-1">Транзакции выполняются вне L1, результаты публикуются</p></div>}>
+            <div className="bg-green-500/20 border border-green-500/50 rounded px-4 py-2 cursor-help text-center">
+              Execute transactions off-chain
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Proofs on L1</strong><p className="mt-1">Fraud proofs (Optimistic) или validity proofs (ZK)</p></div>}>
+            <div className="bg-green-500/20 border border-green-500/50 rounded px-4 py-2 cursor-help text-center">
+              Post proofs/data to L1
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Security inheritance</strong><p className="mt-1">L2 наследует security от Ethereum</p></div>}>
+            <div className="bg-green-500/20 border border-green-500/50 rounded px-4 py-2 cursor-help text-center">
+              Inherit L1 security guarantees
+            </div>
+          </Tooltip>
+        </div>
+        <div className="border-t border-gray-700 mt-2 pt-2 space-y-1 text-sm">
+          <div className="text-green-400">✅ Doesn't change L1</div>
+          <div className="text-green-400">✅ Multiple L2s in parallel</div>
+          <div className="text-green-400">✅ Different trade-offs per L2</div>
+          <div className="text-amber-400">⚠️ Composability between L2s limited</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function InteractiveBisectionDiagram() {
+  const rounds = [
+    { range: '0-1000', desc: 'Sequencer claims state after instruction 500' },
+    { range: '0-500', desc: 'Narrowed to first half' },
+    { range: '250-500', desc: 'Narrowed to 250 instructions' },
+    { range: '375-500', desc: 'Narrowed to 125 instructions' },
+    { range: '...', desc: 'Continue bisection...' },
+    { range: '1 instr', desc: 'Execute on L1, determine winner' },
+  ];
+
+  return (
+    <DiagramContainer title="Interactive Bisection Protocol" color="purple">
+      <div className="space-y-2">
+        {rounds.map((round, i) => (
+          <Tooltip key={i} content={<div><strong>Round {i + 1}</strong><p className="mt-1">{round.desc}</p></div>}>
+            <div className={`flex items-center gap-3 cursor-help ${i === rounds.length - 1 ? 'bg-green-500/20 border-green-500/50' : 'bg-purple-500/20 border-purple-500/50'} border rounded px-3 py-1`}>
+              <span className="text-gray-400 text-xs w-16">Round {i + 1}</span>
+              <span className={`font-mono text-sm ${i === rounds.length - 1 ? 'text-green-300' : 'text-purple-300'}`}>{round.range}</span>
+              {i < rounds.length - 1 && <Arrow direction="right" className="ml-auto" />}
+            </div>
+          </Tooltip>
+        ))}
+        <div className="text-center text-gray-400 text-xs mt-2">
+          Complexity: O(log n) rounds instead of O(n) execution
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function WithdrawalFlowDiagram() {
+  const steps = [
+    { num: 1, label: 'Initiate', desc: 'User initiates withdrawal on L2' },
+    { num: 2, label: 'Include', desc: 'Withdrawal tx included in L2 batch' },
+    { num: 3, label: 'Post', desc: 'Batch posted to L1' },
+    { num: 4, label: 'Challenge', desc: '7 day challenge period starts' },
+    { num: 5, label: 'Wait', desc: 'No valid fraud proof submitted' },
+    { num: 6, label: 'Claim', desc: 'User can claim on L1' },
+  ];
+
+  return (
+    <DiagramContainer title="Optimistic Rollup Withdrawal Flow" color="rose">
+      <div className="space-y-3">
+        <div className="flex flex-wrap justify-center gap-2">
+          {steps.map((step, i) => (
+            <div key={step.num} className="flex items-center">
+              <Tooltip content={<div><strong>Step {step.num}</strong><p className="mt-1">{step.desc}</p></div>}>
+                <div className={`rounded-lg px-3 py-2 cursor-help text-center min-w-[70px] ${step.num === 4 ? 'bg-rose-500/30 border-rose-500/50' : 'bg-gray-700/50 border-gray-600'} border`}>
+                  <div className="text-xs font-bold text-gray-300">{step.num}</div>
+                  <div className="text-xs mt-1">{step.label}</div>
+                </div>
+              </Tooltip>
+              {i < steps.length - 1 && <Arrow direction="right" className="mx-1" />}
+            </div>
+          ))}
+        </div>
+        <Tooltip content={<div><strong>Alternative: Bridge</strong><p className="mt-1">Liquidity providers дают instant withdrawal, сами ждут 7 дней</p></div>}>
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-2 text-center cursor-help">
+            <span className="text-green-300 text-sm">Alternative: Use bridge for instant withdrawal</span>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ZkEVMSpectrumDiagram() {
+  const types = [
+    { type: 'Type 1', name: 'Ethereum-equivalent', desc: 'Proves actual Ethereum blocks', examples: '(in development)', color: 'blue' },
+    { type: 'Type 2', name: 'EVM-equivalent', desc: '100% Solidity compatible', examples: 'Scroll, Polygon zkEVM', color: 'green' },
+    { type: 'Type 2.5', name: 'EVM except gas', desc: 'Different gas costs for some opcodes', examples: 'Scroll (current)', color: 'teal' },
+    { type: 'Type 3', name: 'Almost EVM', desc: 'Most contracts work, some edge cases differ', examples: '(transitional)', color: 'amber' },
+    { type: 'Type 4', name: 'Language-equivalent', desc: 'Compiles to ZK-friendly VM', examples: 'zkSync Era, StarkNet', color: 'purple' },
+  ];
+
+  return (
+    <DiagramContainer title="zkEVM Type Spectrum" color="purple">
+      <div className="space-y-2">
+        {types.map((t) => (
+          <Tooltip key={t.type} content={<div><strong>{t.type}: {t.name}</strong><p className="mt-1">{t.desc}</p><p className="mt-1 text-gray-400 text-xs">Examples: {t.examples}</p></div>}>
+            <div className={`bg-${t.color}-500/20 border border-${t.color}-500/50 rounded px-4 py-2 cursor-help flex justify-between items-center`}>
+              <span className={`text-${t.color}-300 font-bold text-sm`}>{t.type}</span>
+              <span className="text-gray-300 text-sm">{t.name}</span>
+            </div>
+          </Tooltip>
+        ))}
+        <div className="flex justify-between text-xs text-gray-500 mt-2 px-2">
+          <span>← More compatible</span>
+          <span>Faster proofs →</span>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function DataWithholdingDiagram() {
+  return (
+    <DiagramContainer title="Data Withholding Attack" color="rose">
+      <div className="space-y-3">
+        <Tooltip content={<div><strong>Malicious Sequencer</strong><p className="mt-1">Публикует state root, но скрывает данные транзакций</p></div>}>
+          <div className="bg-rose-500/20 border border-rose-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-rose-300 font-bold text-center mb-2">Malicious Sequencer</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">1.</span>
+                <span>Execute: Alice → Bob 100 ETH</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">2.</span>
+                <span>Post state root to L1 ✓</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">3.</span>
+                <span className="text-rose-400">DON'T post transaction data ✗</span>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+          <div className="text-gray-400 font-bold text-center mb-2">Result</div>
+          <div className="space-y-1 text-sm">
+            <div className="text-gray-300">• L1 knows new state root</div>
+            <div className="text-rose-400">• Nobody can verify it's correct</div>
+            <div className="text-rose-400">• Alice can't prove she still has funds</div>
+            <div className="text-rose-400">• Validators can't generate fraud proof</div>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function DankshardingDiagram() {
+  return (
+    <DiagramContainer title="Full Danksharding (Future)" color="blue">
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Tooltip content={<div><strong>Current (EIP-4844)</strong><p className="mt-1">All nodes download all blobs</p></div>}>
+            <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-3 cursor-help">
+              <div className="text-gray-300 font-bold text-center text-sm mb-2">Current</div>
+              <div className="text-xs space-y-1">
+                <div>• 6 blobs max per block</div>
+                <div>• All nodes download all</div>
+                <div>• ~768 KB/block</div>
+              </div>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Full Danksharding</strong><p className="mt-1">Data Availability Sampling - nodes sample random chunks</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help">
+              <div className="text-blue-300 font-bold text-center text-sm mb-2">Danksharding</div>
+              <div className="text-xs space-y-1">
+                <div>• 64+ blobs per block</div>
+                <div>• Data Availability Sampling</div>
+                <div>• ~16 MB/block</div>
+              </div>
+            </div>
+          </Tooltip>
+        </div>
+        <Tooltip content={<div><strong>DAS</strong><p className="mt-1">Nodes sample random blob chunks. Erasure coding allows reconstruction from 50% of data.</p></div>}>
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-2 text-center cursor-help">
+            <span className="text-green-300 text-sm">DAS: No node needs ALL data, probabilistic guarantee</span>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
 export function BlockchainTrilemmaDiagram() {
   return (
     <DiagramContainer title="Blockchain Trilemma">

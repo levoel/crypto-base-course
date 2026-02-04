@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 15
 ---
 
-import { BlockchainTrilemmaDiagram, RollupArchitectureDiagram } from '../../../components/diagrams/Layer2Diagrams';
+import { BlockchainTrilemmaDiagram, RollupArchitectureDiagram, VerticalScalingDiagram, ShardingDiagram, L2SolutionsDiagram } from '../../../components/diagrams/Layer2Diagrams';
 
 # The Scaling Problem
 
@@ -99,56 +99,19 @@ Faster blocks → More orphans → Less security
 
 Вертикальное масштабирование — "просто сделай ноды мощнее". Это путь, который выбрали Solana, BSC, и другие "high-performance" L1. Работает, но ценой decentralization.
 
-```
-┌─────────────────────────────────────────────────┐
-│              Vertical Scaling                    │
-├─────────────────────────────────────────────────┤
-│ ↑ Bigger blocks                                 │
-│ ↑ Faster blocks                                 │
-│ ↑ More powerful nodes                           │
-├─────────────────────────────────────────────────┤
-│ ❌ Reduces decentralization                     │
-│ ❌ State grows faster                           │
-│ ❌ Higher node requirements                     │
-└─────────────────────────────────────────────────┘
-```
+<VerticalScalingDiagram client:load />
 
 ### Horizontal Scaling (Sharding)
 
 Sharding — разделение state на части (shards), каждый shard обрабатывается отдельно. Это как разделить одну большую базу данных на много маленьких. Изначально Ethereum планировал execution sharding, но этот план был отложен в пользу "rollup-centric" roadmap.
 
-```
-┌─────────────────────────────────────────────────┐
-│             Sharding (Danksharding)              │
-├─────────────────────────────────────────────────┤
-│ Split state into multiple "shards"              │
-│ Each shard processed in parallel                │
-│ Cross-shard communication via beacon chain      │
-├─────────────────────────────────────────────────┤
-│ ✅ Scales with number of shards                 │
-│ ❌ Cross-shard txs complex                      │
-│ ❌ Implementation challenging                   │
-└─────────────────────────────────────────────────┘
-```
+<ShardingDiagram client:load />
 
 ### Layer 2 Scaling
 
 Layer 2 — это "умный" подход: вместо изменения L1, мы строим **отдельную систему поверх L1**, которая наследует security от L1, но выполняет транзакции off-chain. Это доминирующий подход сегодня.
 
-```
-┌─────────────────────────────────────────────────┐
-│               Layer 2 Solutions                  │
-├─────────────────────────────────────────────────┤
-│ Execute transactions off-chain                  │
-│ Post proofs/data to L1                          │
-│ Inherit L1 security guarantees                  │
-├─────────────────────────────────────────────────┤
-│ ✅ Doesn't change L1                            │
-│ ✅ Multiple L2s in parallel                     │
-│ ✅ Different trade-offs per L2                  │
-│ ⚠️  Composability between L2s limited          │
-└─────────────────────────────────────────────────┘
-```
+<L2SolutionsDiagram client:load />
 
 <Callout type="note">
 Ethereum's roadmap: "Rollup-centric" — L1 optimized for data availability, L2s handle execution.

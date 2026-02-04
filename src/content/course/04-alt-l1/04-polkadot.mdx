@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
+import { PolkadotNetworkDiagram, HybridConsensusDiagram } from '../../../components/diagrams/AltL1Diagrams';
+
 # Polkadot & Parachains
 
 Polkadot — ещё один ответ на вопрос "как масштабировать blockchains". Если Cosmos говорит "каждый chain независим", Polkadot говорит "давайте shared security, но separate execution".
@@ -25,33 +27,7 @@ Gavin Wood (co-founder Ethereum, создал Solidity) основал Polkadot 
 Polkadot's insight: разделить консенсус и execution. Relay Chain обеспечивает security, parachains — execution.
 </Callout>
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Polkadot Network                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│                    ┌───────────────────┐                    │
-│                    │   Relay Chain     │                    │
-│                    │   (DOT staking,   │                    │
-│                    │    consensus)     │                    │
-│                    └─────────┬─────────┘                    │
-│                              │                              │
-│         ┌────────────────────┼────────────────────┐         │
-│         │                    │                    │         │
-│    ┌────┴────┐          ┌────┴────┐          ┌────┴────┐   │
-│    │Parachain│          │Parachain│          │Parachain│   │
-│    │  Acala  │          │ Moonbeam│          │  Astar  │   │
-│    │  (DeFi) │          │  (EVM)  │          │ (dApps) │   │
-│    └─────────┘          └─────────┘          └─────────┘   │
-│                                                             │
-│    ┌─────────┐          ┌─────────┐                        │
-│    │Parachain│          │Parathread│                       │
-│    │ Phala   │          │(pay-per-use)│                    │
-│    │(privacy)│          └─────────┘                        │
-│    └─────────┘                                             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<PolkadotNetworkDiagram client:load />
 
 ## Core Components
 
@@ -106,30 +82,7 @@ Polkadot использует **hybrid consensus**: BABE для block production
 
 BABE (block production) и GRANDPA (finality) работают параллельно. BABE может создавать forks (вероятностный selection), но GRANDPA финализирует целые цепочки blocks сразу. Это даёт быстрые blocks с сильной eventual finality.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 Hybrid Consensus                             │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  BABE (Block Production):                                   │
-│  - Blind Assignment for Blockchain Extension               │
-│  - VRF-based slot leader selection                         │
-│  - Produces blocks every 6 seconds                         │
-│  - Probabilistic (can have forks)                          │
-│                                                             │
-│  GRANDPA (Finality):                                        │
-│  - GHOST-based Recursive Ancestor Deriving Prefix Agreement│
-│  - Finalizes chains of blocks at once                      │
-│  - Deterministic finality (no reorgs after)               │
-│  - Can finalize even during network partitions             │
-│                                                             │
-│  Together:                                                  │
-│  - Fast block production (BABE)                            │
-│  - Strong finality guarantees (GRANDPA)                    │
-│  - Separation allows optimizing each                       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<HybridConsensusDiagram client:load />
 
 ### Nominated Proof of Stake (NPoS)
 

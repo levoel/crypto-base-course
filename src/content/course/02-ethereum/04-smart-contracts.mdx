@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
+import { ProxyPatternDiagram } from '../../../components/diagrams/EthereumDiagrams';
+
 # Smart Contracts
 
 Smart contract — программа, хранящаяся в блокчейне и выполняемая EVM. В отличие от традиционных приложений, smart contracts **неизменяемы** после deployment: код нельзя обновить (без специальных паттернов), баги нельзя "быстро пофиксить". Это создаёт уникальные challenge для разработки и уникальные возможности для анализа.
@@ -179,16 +181,7 @@ interface IERC20 {
 
 ### 2. Proxy Pattern
 
-```
-┌─────────────────┐     delegatecall     ┌─────────────────┐
-│      Proxy      │ ───────────────────▶ │ Implementation  │
-│  (storage here) │                      │  (logic here)   │
-│   address impl  │                      │                 │
-└─────────────────┘                      └─────────────────┘
-
-User tx → Proxy → delegatecall(impl) → Logic executes in Proxy context
-                                       → Storage modified in Proxy
-```
+<ProxyPatternDiagram client:load />
 
 <Callout type="note">
 Proxy contracts позволяют upgrades. Implementation address хранится в storage slot: `keccak256("eip1967.proxy.implementation") - 1`

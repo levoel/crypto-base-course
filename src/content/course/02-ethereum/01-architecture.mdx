@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { AccountModelDiagram } from '../../../components/diagrams/EthereumDiagrams';
+import { AccountModelDiagram, StateTrieDiagram, TransactionFlowDiagram } from '../../../components/diagrams/EthereumDiagrams';
 
 # Архитектура Ethereum
 
@@ -53,48 +53,13 @@ class Account:
 
 ### Два типа аккаунтов
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Externally Owned Account (EOA)          │
-├─────────────────────────────────────────────────────────────┤
-│ • Контролируется private key                                │
-│ • Может инициировать транзакции                            │
-│ • nonce = счётчик транзакций                               │
-│ • code_hash = EMPTY (нет кода)                             │
-│ • storage_root = EMPTY (нет storage)                       │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                    Contract Account                         │
-├─────────────────────────────────────────────────────────────┤
-│ • Контролируется кодом                                      │
-│ • Не может инициировать транзакции (только respond)        │
-│ • nonce = счётчик созданных контрактов                     │
-│ • code_hash = hash(bytecode)                               │
-│ • storage_root = Merkle root of storage trie               │
-└─────────────────────────────────────────────────────────────┘
-```
-
 <AccountModelDiagram client:load />
 
 ## State Trie
 
 Ethereum использует **Modified Merkle Patricia Trie** для хранения state:
 
-```
-                     State Root
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-      [0x1...]        [0x5...]        [0xa...]
-         │               │               │
-    ┌────┴────┐     Account          ┌───┴───┐
-    │         │     Data             │       │
- [0x1a...]  [0x1f...]             [0xab...] [0xac...]
-    │                                 │
- Account                           Account
- Data                              Data
-```
+<StateTrieDiagram client:load />
 
 <Callout type="warning">
 State trie — главный bottleneck Ethereum. Каждое чтение/запись storage = несколько disk I/O. Это причина высокой стоимости SSTORE/SLOAD opcodes.
@@ -126,21 +91,7 @@ class Transaction1559:
 
 ### Transaction Flow
 
-```
-1. User signs transaction
-         ↓
-2. Transaction broadcasted to mempool
-         ↓
-3. Validator selects transactions (by fee)
-         ↓
-4. EVM executes transaction
-         ↓
-5. State transitions applied
-         ↓
-6. Receipt generated (logs, status, gas used)
-         ↓
-7. Block finalized
-```
+<TransactionFlowDiagram client:load />
 
 ## Block Structure
 

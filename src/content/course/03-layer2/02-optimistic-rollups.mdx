@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { OptimisticVsZKDiagram } from '../../../components/diagrams/Layer2Diagrams';
+import { OptimisticVsZKDiagram, InteractiveBisectionDiagram, WithdrawalFlowDiagram } from '../../../components/diagrams/Layer2Diagrams';
 
 # Optimistic Rollups
 
@@ -127,21 +127,7 @@ Fraud proofs — механизм, который делает Optimistic rollup
 
 Как доказать fraud эффективно? Нельзя просто выполнить весь batch on-chain — это дорого. Вместо этого используется "bisection protocol" — бинарный поиск спорной инструкции.
 
-```
-Disputed execution: instructions 0-1000
-
-Round 1: Sequencer claims state after instruction 500
-         Challenger disagrees
-         → Dispute narrowed to 0-500 OR 500-1000
-
-Round 2: Narrow to 250 instructions
-Round 3: Narrow to 125 instructions
-...
-Round 10: Single instruction dispute
-         → Execute on L1, determine winner
-
-Complexity: O(log n) rounds instead of O(n) execution
-```
+<InteractiveBisectionDiagram client:load />
 
 ## Arbitrum vs Optimism
 
@@ -244,30 +230,7 @@ Cost reduction: 10-100x cheaper than calldata
 
 Withdrawal (вывод средств с L2 на L1) — самое болезненное место Optimistic rollups. Из-за challenge period нужно ждать 7 дней. Почему так долго? Чтобы дать время verifiers обнаружить и доказать fraud, если он есть.
 
-```
-1. User initiates withdrawal on L2
-       │
-       ▼
-2. Withdrawal tx included in L2 batch
-       │
-       ▼
-3. Batch posted to L1
-       │
-       ▼
-4. Challenge period starts (7 days)
-       │
-       ▼
-5. No valid fraud proof submitted
-       │
-       ▼
-6. User can claim on L1
-
-Alternative: Use bridge with liquidity providers
-- Instant withdrawal
-- Bridge takes L2 funds
-- Bridge gives L1 funds immediately
-- Bridge waits for challenge period
-```
+<WithdrawalFlowDiagram client:load />
 
 ## Данные для анализа
 
