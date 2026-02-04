@@ -983,3 +983,106 @@ export function EigenDADiagram() {
     </DiagramContainer>
   );
 }
+
+export function ZKProofFlowDiagram() {
+  return (
+    <DiagramContainer title="Zero-Knowledge Proof Flow" color="purple">
+      <div className="flex items-start gap-6 justify-center">
+        {/* Prover */}
+        <Tooltip content={
+          <div>
+            <strong className="text-purple-300">Prover</strong>
+            <p className="mt-2">Knows secret x, wants to prove f(x) = y without revealing x</p>
+            <p className="mt-1 text-gray-400 text-xs">Computationally expensive (GPU clusters)</p>
+          </div>
+        }>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-4 cursor-help w-32 text-center">
+            <div className="text-purple-300 font-bold">Prover</div>
+            <div className="text-xs text-gray-400 mt-2">Knows: x</div>
+            <div className="text-xs text-gray-400">f(x) = y</div>
+          </div>
+        </Tooltip>
+
+        {/* Arrows and messages */}
+        <div className="flex flex-col gap-4 pt-4">
+          {/* Claim */}
+          <Tooltip content={<div><strong>Claim</strong><p className="mt-1">Prover claims to know x such that f(x) = y</p></div>}>
+            <div className="flex items-center gap-2 cursor-help">
+              <div className="w-24 border-t-2 border-purple-400"></div>
+              <span className="text-purple-400">→</span>
+              <div className="text-xs text-gray-400 whitespace-nowrap">"I know x: f(x)=y"</div>
+            </div>
+          </Tooltip>
+
+          {/* Proof */}
+          <Tooltip content={
+            <div>
+              <strong className="text-green-300">Proof π</strong>
+              <p className="mt-2">Cryptographic proof that doesn't reveal x but proves knowledge</p>
+              <ul className="mt-1 text-xs space-y-1">
+                <li>• SNARK: ~200 bytes</li>
+                <li>• STARK: ~50 KB</li>
+              </ul>
+            </div>
+          }>
+            <div className="flex items-center gap-2 cursor-help">
+              <div className="w-24 border-t-2 border-green-400"></div>
+              <span className="text-green-400">→</span>
+              <div className="text-xs text-green-300 whitespace-nowrap">Proof π</div>
+            </div>
+          </Tooltip>
+
+          {/* Verification result */}
+          <Tooltip content={<div><strong>Verification</strong><p className="mt-1">Verifier checks proof in O(1) time</p></div>}>
+            <div className="flex items-center gap-2 cursor-help">
+              <div className="w-24 border-t-2 border-dashed border-gray-500"></div>
+              <span className="text-gray-500">←</span>
+              <div className="text-xs text-gray-400 whitespace-nowrap">true / false</div>
+            </div>
+          </Tooltip>
+        </div>
+
+        {/* Verifier */}
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Verifier</strong>
+            <p className="mt-2">Verifies proof without learning x</p>
+            <ul className="mt-1 text-xs space-y-1">
+              <li>• O(1) verification time</li>
+              <li>• ~500K gas on-chain</li>
+              <li>• Zero-knowledge: learns nothing about x</li>
+            </ul>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 cursor-help w-32 text-center">
+            <div className="text-blue-300 font-bold">Verifier</div>
+            <div className="text-xs text-gray-400 mt-2">Verify(π, y)</div>
+            <div className="text-xs text-green-400 mt-1">O(1) time</div>
+          </div>
+        </Tooltip>
+      </div>
+
+      {/* Properties */}
+      <div className="grid grid-cols-3 gap-2 mt-4 text-xs">
+        <Tooltip content={<div><strong>Completeness</strong><p className="mt-1">Honest prover always convinces verifier</p></div>}>
+          <div className="bg-gray-700/50 rounded p-2 cursor-help text-center">
+            <div className="text-green-300">Completeness</div>
+            <div className="text-gray-400">Honest prover wins</div>
+          </div>
+        </Tooltip>
+        <Tooltip content={<div><strong>Soundness</strong><p className="mt-1">Dishonest prover cannot deceive verifier</p></div>}>
+          <div className="bg-gray-700/50 rounded p-2 cursor-help text-center">
+            <div className="text-blue-300">Soundness</div>
+            <div className="text-gray-400">Can't fake proof</div>
+          </div>
+        </Tooltip>
+        <Tooltip content={<div><strong>Zero-Knowledge</strong><p className="mt-1">Verifier learns nothing except validity</p></div>}>
+          <div className="bg-gray-700/50 rounded p-2 cursor-help text-center">
+            <div className="text-purple-300">Zero-Knowledge</div>
+            <div className="text-gray-400">x stays secret</div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}

@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { UTXODiagram } from '../../../components/diagrams/BitcoinDiagrams';
+import { UTXODiagram, UTXOTransactionDiagram } from '../../../components/diagrams/BitcoinDiagrams';
 
 # UTXO Model
 
@@ -40,20 +40,7 @@ UTXO (Unspent Transaction Output) — фундаментальная модел�
 
 Транзакция Bitcoin — это трансформация UTXO: она **уничтожает** существующие UTXO (inputs) и **создаёт** новые (outputs). Сумма inputs должна быть >= суммы outputs, разница — это fee для майнера.
 
-```
-Inputs (уничтожаем):           Outputs (создаём):
-┌──────────────────────┐       ┌──────────────────────┐
-│ UTXO #1: 0.5 BTC     │       │ Получателю: 0.7 BTC  │
-│ (от предыдущей tx)   │──────▶│                      │
-├──────────────────────┤       ├──────────────────────┤
-│ UTXO #2: 0.3 BTC     │       │ Сдача: 0.099 BTC     │
-│ (от другой tx)       │       │ (мне обратно)        │
-└──────────────────────┘       └──────────────────────┘
-
-Sum(inputs) = 0.8 BTC
-Sum(outputs) = 0.799 BTC
-Fee = 0.001 BTC (достаётся майнеру)
-```
+<UTXOTransactionDiagram client:load />
 
 ### Структура транзакции
 

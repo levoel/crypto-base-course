@@ -5,6 +5,8 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
+import { StateTrieDiagram } from '../../../components/diagrams/EthereumDiagrams';
+
 # State & Storage
 
 State management — ключевая особенность Ethereum. В отличие от Bitcoin (stateless UTXO), Ethereum хранит полное состояние всех аккаунтов и контрактов. Это stateful модель, где контракт "помнит" значения переменных между вызовами.
@@ -119,20 +121,7 @@ balance_slot = keccak256(key_data)
 
 Ethereum использует Modified Merkle Patricia Trie:
 
-```
-                    State Root
-                        │
-        ┌───────────────┴───────────────┐
-        │                               │
-    Extension                       Extension
-    [shared prefix]                 [shared prefix]
-        │                               │
-    ┌───┴───┐                       ┌───┴───┐
-  Branch   Branch                 Branch   Branch
-    │         │                     │         │
-  Leaf      Leaf                  Leaf      Leaf
-  [Account] [Account]            [Account] [Account]
-```
+<StateTrieDiagram client:load />
 
 ### Trie Types
 

@@ -717,3 +717,416 @@ export function ExecutionModelsDiagram() {
     </DiagramContainer>
   );
 }
+
+export function IBCTransferDiagram() {
+  const steps = [
+    { from: 'Chain A', action: 'Lock tokens in escrow', color: 'blue' },
+    { from: 'Chain A', action: 'SendPacket →', to: 'Relayer', color: 'blue' },
+    { from: 'Relayer', action: 'RecvPacket →', to: 'Chain B', color: 'purple' },
+    { from: 'Chain B', action: 'Mint vouchers', color: 'green' },
+    { from: 'Chain B', action: '← WriteAck', to: 'Relayer', color: 'green' },
+    { from: 'Relayer', action: '← AckPacket', to: 'Chain A', color: 'purple' },
+    { from: 'Chain A', action: 'Confirm transfer', color: 'blue' },
+  ];
+
+  return (
+    <DiagramContainer title="IBC Token Transfer Flow" color="green">
+      <div className="flex flex-col gap-2">
+        {/* Header */}
+        <div className="grid grid-cols-3 gap-4 text-center mb-2">
+          <div className="text-blue-300 font-bold text-sm">Chain A</div>
+          <div className="text-purple-300 font-bold text-sm">Relayer</div>
+          <div className="text-green-300 font-bold text-sm">Chain B</div>
+        </div>
+
+        {/* Timeline */}
+        <div className="relative">
+          {/* Vertical lines */}
+          <div className="absolute inset-0 grid grid-cols-3 gap-4">
+            <div className="flex justify-center">
+              <div className="w-0.5 h-full bg-blue-500/30"></div>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-0.5 h-full bg-purple-500/30"></div>
+            </div>
+            <div className="flex justify-center">
+              <div className="w-0.5 h-full bg-green-500/30"></div>
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div className="relative space-y-3 py-2">
+            {/* Step 1: Lock tokens */}
+            <Tooltip content={<div><strong>Step 1</strong><p className="mt-1">Chain A locks tokens in IBC escrow account</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div className="flex justify-center">
+                  <div className="bg-blue-500/20 border border-blue-500/50 rounded px-2 py-1 text-xs">
+                    Lock in escrow
+                  </div>
+                </div>
+                <div></div>
+                <div></div>
+              </div>
+            </Tooltip>
+
+            {/* Step 2: SendPacket */}
+            <Tooltip content={<div><strong>SendPacket</strong><p className="mt-1">Chain A emits IBC packet with transfer data</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div className="flex justify-center items-center">
+                  <div className="bg-blue-500/30 rounded px-2 py-0.5 text-xs">SendPacket</div>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-1 border-t-2 border-dashed border-blue-400"></div>
+                  <span className="text-blue-400 text-xs">→</span>
+                </div>
+                <div></div>
+              </div>
+            </Tooltip>
+
+            {/* Step 3: RecvPacket */}
+            <Tooltip content={<div><strong>RecvPacket</strong><p className="mt-1">Relayer submits packet proof to Chain B</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div></div>
+                <div className="flex items-center">
+                  <span className="text-purple-400 text-xs"></span>
+                  <div className="flex-1 border-t-2 border-dashed border-purple-400"></div>
+                  <span className="text-purple-400 text-xs">→</span>
+                </div>
+                <div className="flex justify-center items-center">
+                  <div className="bg-purple-500/30 rounded px-2 py-0.5 text-xs">RecvPacket</div>
+                </div>
+              </div>
+            </Tooltip>
+
+            {/* Step 4: Mint vouchers */}
+            <Tooltip content={<div><strong>Mint Vouchers</strong><p className="mt-1">Chain B mints IBC voucher tokens (e.g., ibc/ABC...)</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div></div>
+                <div></div>
+                <div className="flex justify-center">
+                  <div className="bg-green-500/20 border border-green-500/50 rounded px-2 py-1 text-xs">
+                    Mint vouchers
+                  </div>
+                </div>
+              </div>
+            </Tooltip>
+
+            {/* Step 5: WriteAck */}
+            <Tooltip content={<div><strong>WriteAck</strong><p className="mt-1">Chain B writes acknowledgement</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div></div>
+                <div className="flex items-center">
+                  <span className="text-green-400 text-xs">←</span>
+                  <div className="flex-1 border-t-2 border-dashed border-green-400"></div>
+                </div>
+                <div className="flex justify-center items-center">
+                  <div className="bg-green-500/30 rounded px-2 py-0.5 text-xs">WriteAck</div>
+                </div>
+              </div>
+            </Tooltip>
+
+            {/* Step 6: AckPacket */}
+            <Tooltip content={<div><strong>AckPacket</strong><p className="mt-1">Relayer submits ack proof to Chain A</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div className="flex justify-center items-center">
+                  <div className="bg-purple-500/30 rounded px-2 py-0.5 text-xs">AckPacket</div>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-purple-400 text-xs">←</span>
+                  <div className="flex-1 border-t-2 border-dashed border-purple-400"></div>
+                </div>
+                <div></div>
+              </div>
+            </Tooltip>
+
+            {/* Step 7: Confirm */}
+            <Tooltip content={<div><strong>Confirm</strong><p className="mt-1">Chain A confirms transfer completed</p></div>}>
+              <div className="grid grid-cols-3 gap-4 cursor-help">
+                <div className="flex justify-center">
+                  <div className="bg-blue-500/20 border border-blue-500/50 rounded px-2 py-1 text-xs">
+                    Confirm ✓
+                  </div>
+                </div>
+                <div></div>
+                <div></div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+
+        {/* Note */}
+        <div className="text-xs text-gray-400 text-center mt-2 border-t border-gray-700 pt-2">
+          Relayer = permissionless, anyone can run. Light clients verify proofs.
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function TendermintRoundDiagram() {
+  const phases = [
+    { name: 'PROPOSE', desc: 'Proposer broadcasts block', color: 'blue' },
+    { name: 'PREVOTE', desc: 'Validators prevote (or nil). Wait 2/3+', color: 'purple' },
+    { name: 'PRECOMMIT', desc: 'Precommit if 2/3+ prevoted same. Wait 2/3+', color: 'amber' },
+    { name: 'COMMIT', desc: 'If 2/3+ precommitted → finalize', color: 'green' },
+  ];
+
+  return (
+    <DiagramContainer title="Tendermint Consensus Round" color="purple">
+      <div className="space-y-2">
+        {phases.map((phase, i) => (
+          <Tooltip key={phase.name} content={
+            <div>
+              <strong className={`text-${phase.color}-300`}>Phase {i + 1}: {phase.name}</strong>
+              <p className="mt-2">{phase.desc}</p>
+            </div>
+          }>
+            <div className={`bg-${phase.color}-500/20 border border-${phase.color}-500/50 rounded-lg p-3 cursor-help`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-${phase.color}-300 font-bold text-sm`}>{i + 1}. {phase.name}</span>
+                {i < phases.length - 1 && <Arrow direction="down" />}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">{phase.desc}</div>
+            </div>
+          </Tooltip>
+        ))}
+        <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-2 text-center">
+          <span className="text-gray-400 text-xs">Timeout between phases → ensures liveness</span>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function InterchainSecurityDiagram() {
+  return (
+    <DiagramContainer title="Interchain Security (ICS)" color="blue">
+      <div className="space-y-3">
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Provider Chain</strong>
+            <p className="mt-2">Cosmos Hub provides security to consumer chains via staked ATOM</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-blue-300 font-bold text-center">Provider: Cosmos Hub</div>
+            <div className="text-xs text-gray-400 text-center mt-1">ATOM stakers validate multiple chains</div>
+            <div className="text-xs text-rose-400 text-center mt-1">Slashing applies across chains</div>
+          </div>
+        </Tooltip>
+
+        <div className="flex justify-center">
+          <Arrow direction="down" />
+        </div>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Consumer Chains</strong>
+            <p className="mt-2">New chains inherit security from provider instead of bootstrapping their own</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-green-300 font-bold text-center">Consumer Chains</div>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <div className="bg-green-900/30 rounded px-2 py-1 text-xs text-center">Neutron</div>
+              <div className="bg-green-900/30 rounded px-2 py-1 text-xs text-center">Stride</div>
+              <div className="bg-green-900/30 rounded px-2 py-1 text-xs text-center">...</div>
+            </div>
+            <div className="text-xs text-gray-400 text-center mt-2">
+              Inherit security • Share validators • Pay fees to provider
+            </div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ABCIDiagram() {
+  const calls = [
+    { name: 'BeginBlock', desc: 'Start of block processing' },
+    { name: 'DeliverTx', desc: 'For each transaction in block' },
+    { name: 'EndBlock', desc: 'End of block, validator updates' },
+    { name: 'Commit', desc: 'Persist state, return app hash' },
+  ];
+
+  return (
+    <DiagramContainer title="ABCI Interface" color="amber">
+      <div className="flex items-start gap-6 justify-center">
+        {/* Tendermint */}
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Tendermint Core</strong>
+            <p className="mt-2">Handles consensus, networking, block production</p>
+            <p className="mt-1 text-xs text-gray-400">Written in Go, language-agnostic interface</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help w-32 text-center">
+            <div className="text-blue-300 font-bold text-sm">Tendermint</div>
+            <div className="text-xs text-gray-400 mt-1">(Consensus)</div>
+          </div>
+        </Tooltip>
+
+        {/* Bidirectional arrows */}
+        <div className="flex flex-col gap-1 pt-2">
+          {calls.map((call) => (
+            <Tooltip key={call.name} content={<div><strong>{call.name}</strong><p className="mt-1">{call.desc}</p></div>}>
+              <div className="flex items-center gap-1 cursor-help">
+                <span className="text-amber-400 text-xs">◄</span>
+                <div className="w-20 border-t border-dashed border-amber-400"></div>
+                <span className="text-amber-400 text-xs">►</span>
+                <span className="text-xs text-amber-300 ml-1">{call.name}</span>
+              </div>
+            </Tooltip>
+          ))}
+        </div>
+
+        {/* Application */}
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Application</strong>
+            <p className="mt-2">Your business logic (Go, Rust via CosmWasm, etc.)</p>
+            <p className="mt-1 text-xs text-gray-400">ABCI allows any language</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help w-32 text-center">
+            <div className="text-green-300 font-bold text-sm">Application</div>
+            <div className="text-xs text-gray-400 mt-1">(Business Logic)</div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function LeaderScheduleDiagram() {
+  const leaders = ['A', 'B', 'C', 'A'];
+
+  return (
+    <DiagramContainer title="PoH + Tower BFT" color="green">
+      <div className="space-y-3">
+        {/* Leader Schedule */}
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Leader Schedule</strong>
+            <p className="mt-2">Deterministic rotation of block producers. Each leader gets 4 slots (~1.6 sec).</p>
+          </div>
+        }>
+          <div className="cursor-help">
+            <div className="text-xs text-gray-400 text-center mb-1">Leader Schedule</div>
+            <div className="flex justify-center gap-1">
+              {leaders.map((leader, i) => (
+                <div key={i} className={`bg-green-500/20 border border-green-500/50 rounded px-4 py-2 text-center ${i === 0 ? 'bg-green-500/40' : ''}`}>
+                  <div className="text-green-300 font-bold text-sm">Leader {leader}</div>
+                  <div className="text-xs text-gray-400">4 slots</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="mx-auto block" />
+
+        {/* PoH Timestamps */}
+        <Tooltip content={<div><strong>PoH Timestamps</strong><p className="mt-1">Leader produces blocks with cryptographic time proof</p></div>}>
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-2 text-center cursor-help">
+            <div className="text-amber-300 text-sm">Leader produces blocks with PoH timestamps</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="mx-auto block" />
+
+        {/* Verification */}
+        <Tooltip content={<div><strong>Verification</strong><p className="mt-1">Other validators verify PoH sequence and vote</p></div>}>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-2 text-center cursor-help">
+            <div className="text-blue-300 text-sm">Other validators verify PoH + vote</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="mx-auto block" />
+
+        {/* Tower BFT */}
+        <Tooltip content={
+          <div>
+            <strong className="text-purple-300">Tower BFT</strong>
+            <p className="mt-2">Votes have increasing lockout times - exponential penalty for switching forks</p>
+          </div>
+        }>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-2 cursor-help">
+            <div className="text-purple-300 font-bold text-sm text-center">Tower BFT</div>
+            <div className="text-xs text-gray-400 text-center">Votes have increasing lockout times</div>
+            <div className="text-xs text-rose-400 text-center">(exponential penalty for switching)</div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function SealevelParallelDiagram() {
+  const transactions = [
+    { id: 'Tx1', accounts: 'A, B', access: 'write A, read B', thread: 1, depends: 'Tx3' },
+    { id: 'Tx2', accounts: 'C, D', access: 'write C, write D', thread: 2, depends: null },
+    { id: 'Tx3', accounts: 'A, E', access: 'read A, write E', thread: 1, depends: null },
+    { id: 'Tx4', accounts: 'F, G', access: 'write F, read G', thread: 3, depends: null },
+  ];
+
+  return (
+    <DiagramContainer title="Sealevel Parallel Execution" color="purple">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Transactions */}
+        <div className="space-y-2">
+          <div className="text-xs text-gray-400 text-center mb-1">Transactions in block</div>
+          {transactions.map((tx) => (
+            <Tooltip key={tx.id} content={
+              <div>
+                <strong>{tx.id}</strong>
+                <p className="mt-1">Accounts: [{tx.accounts}]</p>
+                <p>Access: {tx.access}</p>
+              </div>
+            }>
+              <div className="bg-gray-700/50 border border-gray-600 rounded px-3 py-1 cursor-help flex justify-between">
+                <span className="text-purple-300 font-bold text-xs">{tx.id}</span>
+                <span className="text-xs text-gray-400">[{tx.accounts}]</span>
+              </div>
+            </Tooltip>
+          ))}
+        </div>
+
+        {/* Parallel Execution */}
+        <div className="space-y-2">
+          <div className="text-xs text-gray-400 text-center mb-1">Parallel Execution</div>
+          <Tooltip content={<div><strong>Thread 1</strong><p className="mt-1">Tx1 → Tx3 (both access A, must serialize)</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded px-3 py-2 cursor-help">
+              <div className="text-blue-300 text-xs font-bold">Thread 1</div>
+              <div className="flex items-center gap-1 text-xs mt-1">
+                <span className="bg-blue-900/50 px-2 py-0.5 rounded">Tx1</span>
+                <Arrow direction="right" />
+                <span className="bg-blue-900/50 px-2 py-0.5 rounded">Tx3</span>
+              </div>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Thread 2</strong><p className="mt-1">Tx2 runs independently (different accounts)</p></div>}>
+            <div className="bg-green-500/20 border border-green-500/50 rounded px-3 py-2 cursor-help">
+              <div className="text-green-300 text-xs font-bold">Thread 2</div>
+              <div className="text-xs mt-1">
+                <span className="bg-green-900/50 px-2 py-0.5 rounded">Tx2</span>
+              </div>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>Thread 3</strong><p className="mt-1">Tx4 runs independently (different accounts)</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-3 py-2 cursor-help">
+              <div className="text-amber-300 text-xs font-bold">Thread 3</div>
+              <div className="text-xs mt-1">
+                <span className="bg-amber-900/50 px-2 py-0.5 rounded">Tx4</span>
+              </div>
+            </div>
+          </Tooltip>
+          <div className="text-xs text-gray-400 text-center mt-2">
+            Total time ≈ max(Tx1+Tx3, Tx2, Tx4)
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}

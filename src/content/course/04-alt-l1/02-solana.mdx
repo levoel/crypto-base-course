@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { SolanaInnovationsDiagram, AccountOwnershipDiagram } from '../../../components/diagrams/AltL1Diagrams';
+import { SolanaInnovationsDiagram, AccountOwnershipDiagram, LeaderScheduleDiagram, SealevelParallelDiagram } from '../../../components/diagrams/AltL1Diagrams';
 
 # Solana Architecture
 
@@ -60,23 +60,7 @@ Verify: Любой может проверить, пересчитав хеши
 
 PoH работает вместе с Tower BFT — оптимизированным BFT консенсусом. Leader производит блоки с PoH timestamps, другие validators vote за эти блоки. Votes имеют "lockout" — чем дольше validator голосовал за определённую fork, тем сложнее ему переключиться. Это создаёт экономические incentives для честного поведения.
 
-```
-Leader Schedule:
-┌─────────┬─────────┬─────────┬─────────┐
-│ Leader A│ Leader B│ Leader C│ Leader A│
-│ 4 slots │ 4 slots │ 4 slots │ 4 slots │
-└─────────┴─────────┴─────────┴─────────┘
-    │
-    ▼
-Leader produces blocks with PoH timestamps
-    │
-    ▼
-Other validators verify PoH + vote
-    │
-    ▼
-Tower BFT: Votes have increasing lockout times
-           (exponential penalty for switching)
-```
+<LeaderScheduleDiagram client:load />
 
 ## Account Model
 
@@ -147,25 +131,7 @@ let instruction = Instruction {
 
 Runtime анализирует declared accounts и строит dependency graph. Транзакции, которые не конфликтуют (не пишут в одни accounts), выполняются параллельно на разных CPU cores.
 
-```
-Transactions in block:
-  Tx1: accounts [A, B] (write A, read B)
-  Tx2: accounts [C, D] (write C, write D)
-  Tx3: accounts [A, E] (read A, write E)
-  Tx4: accounts [F, G] (write F, read G)
-
-Dependency graph:
-  Tx1 ──────► Tx3 (both access A)
-  Tx2 ◄─────────────── (independent)
-  Tx4 ◄─────────────── (independent)
-
-Parallel execution:
-  Thread 1: Tx1 ──► Tx3
-  Thread 2: Tx2
-  Thread 3: Tx4
-
-  Total time ≈ max(Tx1+Tx3, Tx2, Tx4)
-```
+<SealevelParallelDiagram client:load />
 
 ## Transaction Structure
 

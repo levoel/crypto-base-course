@@ -520,3 +520,90 @@ export function MiningDiagram() {
     </DiagramContainer>
   );
 }
+
+export function UTXOTransactionDiagram() {
+  return (
+    <DiagramContainer title="UTXO Transaction Flow" color="amber">
+      <div className="flex items-center gap-4 justify-center">
+        {/* Inputs side */}
+        <Tooltip content={
+          <div>
+            <strong className="text-rose-300">Inputs (уничтожаем)</strong>
+            <p className="mt-2">Каждый input ссылается на UTXO из предыдущей транзакции.</p>
+            <p className="mt-1 text-gray-400 text-xs">UTXO тратится целиком — нельзя потратить "часть"</p>
+          </div>
+        }>
+          <div className="bg-rose-500/20 border border-rose-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-rose-300 font-bold text-xs text-center mb-2">Inputs (уничтожаем)</div>
+            <div className="space-y-2">
+              <div className="bg-rose-900/30 rounded px-3 py-2">
+                <div className="text-xs text-rose-300">UTXO #1</div>
+                <div className="text-sm font-bold text-white">0.5 BTC</div>
+                <div className="text-xs text-gray-500">(от предыдущей tx)</div>
+              </div>
+              <div className="bg-rose-900/30 rounded px-3 py-2">
+                <div className="text-xs text-rose-300">UTXO #2</div>
+                <div className="text-sm font-bold text-white">0.3 BTC</div>
+                <div className="text-xs text-gray-500">(от другой tx)</div>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+
+        {/* Arrow with TX */}
+        <div className="flex flex-col items-center gap-1">
+          <Arrow direction="right" />
+          <Tooltip content={
+            <div>
+              <strong className="text-amber-300">Transaction</strong>
+              <p className="mt-2">Sum(inputs) = Sum(outputs) + fee</p>
+              <p className="mt-1 text-gray-400 text-xs">0.8 = 0.799 + 0.001</p>
+            </div>
+          }>
+            <div className="bg-amber-500/30 border border-amber-500/50 rounded px-2 py-1 cursor-help">
+              <div className="text-xs text-amber-300 font-bold">TX</div>
+            </div>
+          </Tooltip>
+          <Arrow direction="right" />
+        </div>
+
+        {/* Outputs side */}
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Outputs (создаём)</strong>
+            <p className="mt-2">Новые UTXO с указанием получателя и суммы.</p>
+            <p className="mt-1 text-gray-400 text-xs">Каждый output locked скриптом (scriptPubKey)</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-green-300 font-bold text-xs text-center mb-2">Outputs (создаём)</div>
+            <div className="space-y-2">
+              <div className="bg-green-900/30 rounded px-3 py-2">
+                <div className="text-xs text-green-300">Получателю</div>
+                <div className="text-sm font-bold text-white">0.7 BTC</div>
+              </div>
+              <div className="bg-purple-900/30 rounded px-3 py-2">
+                <div className="text-xs text-purple-300">Сдача (мне)</div>
+                <div className="text-sm font-bold text-white">0.099 BTC</div>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+      </div>
+
+      {/* Fee calculation */}
+      <div className="mt-4 text-center border-t border-gray-700 pt-3">
+        <div className="flex justify-center gap-6 text-xs">
+          <div className="text-gray-400">Sum(inputs) = <span className="text-white font-mono">0.8 BTC</span></div>
+          <div className="text-gray-400">Sum(outputs) = <span className="text-white font-mono">0.799 BTC</span></div>
+          <Tooltip content={<div><strong>Fee</strong><p className="mt-1">Разница между inputs и outputs достаётся майнеру</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-2 py-1 cursor-help">
+              <span className="text-amber-300">Fee = </span>
+              <span className="text-white font-mono">0.001 BTC</span>
+            </div>
+          </Tooltip>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}

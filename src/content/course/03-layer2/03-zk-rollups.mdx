@@ -5,7 +5,7 @@ difficulty: "advanced"
 timeToComplete: 25
 ---
 
-import { ZkEVMSpectrumDiagram, ZkRollupArchDiagram, ProverPipelineDiagram, ProofAggregationDiagram } from '../../../components/diagrams/Layer2Diagrams';
+import { ZkEVMSpectrumDiagram, ZkRollupArchDiagram, ProverPipelineDiagram, ProofAggregationDiagram, ZKProofFlowDiagram } from '../../../components/diagrams/Layer2Diagrams';
 
 # ZK Rollups
 
@@ -45,18 +45,7 @@ Zero-Knowledge Proofs — одно из самых мощных криптогр
 
 ZK Proof позволяет **доказать знание чего-то, не раскрывая само знание**. Классическая аналогия: ты знаешь пароль от сейфа. Вместо того чтобы показать пароль, ты открываешь сейф — это доказывает знание без раскрытия.
 
-```
-Prover                              Verifier
-   │                                    │
-   │  "I know x such that f(x) = y"     │
-   │ ──────────────────────────────────►│
-   │                                    │
-   │  Proof π (doesn't reveal x)        │
-   │ ──────────────────────────────────►│
-   │                                    │
-   │                              Verify(π, y) = true/false
-   │                                    │
-```
+<ZKProofFlowDiagram client:load />
 
 Свойства:
 - **Completeness**: честный prover всегда убедит

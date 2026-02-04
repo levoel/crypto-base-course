@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { CosmosVsEthereumDiagram, CosmosSDKArchitectureDiagram, IBCProtocolDiagram } from '../../../components/diagrams/AltL1Diagrams';
+import { CosmosVsEthereumDiagram, CosmosSDKArchitectureDiagram, IBCProtocolDiagram, IBCTransferDiagram, TendermintRoundDiagram, InterchainSecurityDiagram, ABCIDiagram } from '../../../components/diagrams/AltL1Diagrams';
 
 # Cosmos & IBC
 
@@ -45,18 +45,9 @@ Cosmos SDK app состоит из modules, каждый отвечает за �
 
 ### ABCI (Application Blockchain Interface)
 
-```
-Tendermint (Consensus)        Application (Business Logic)
-       │                              │
-       │ ◄─── BeginBlock ───────────► │
-       │ ◄─── DeliverTx  ───────────► │ (for each tx)
-       │ ◄─── EndBlock   ───────────► │
-       │ ◄─── Commit     ───────────► │
-       │                              │
+<ABCIDiagram client:load />
 
-ABCI позволяет писать app logic на любом языке
-(Go, Rust via CosmWasm, etc.)
-```
+ABCI позволяет писать app logic на любом языке (Go, Rust via CosmWasm, etc.)
 
 ## Tendermint Consensus
 
@@ -68,30 +59,7 @@ Trade-off: Tendermint требует 2/3+ валидаторов online. Есл�
 
 Tendermint работает в rounds. Каждый round имеет proposer (выбирается детерминистично). Если proposer не предложил блок вовремя — timeout и новый round с новым proposer.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  Tendermint Round                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1. PROPOSE                                                 │
-│     Proposer broadcasts block                               │
-│                                                             │
-│  2. PREVOTE                                                 │
-│     Validators prevote for block (or nil)                  │
-│     Wait for 2/3+ prevotes                                  │
-│                                                             │
-│  3. PRECOMMIT                                               │
-│     Validators precommit if 2/3+ prevoted same              │
-│     Wait for 2/3+ precommits                                │
-│                                                             │
-│  4. COMMIT                                                  │
-│     If 2/3+ precommitted same block → finalize              │
-│     Otherwise → next round                                  │
-│                                                             │
-│  Timeout between phases → ensures liveness                  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<TendermintRoundDiagram client:load />
 
 <Callout type="warning">
 Tendermint sacrifices liveness for safety: если >1/3 validators offline, сеть останавливается (но не делает invalid commits).
@@ -123,26 +91,7 @@ IBC architecture состоит из 4 layers: Light Clients (track consensus st
 
 ### IBC Token Transfer
 
-```
-Chain A                    Relayer                    Chain B
-   │                          │                          │
-   │ Lock tokens              │                          │
-   │ in escrow                │                          │
-   │──────────────────────────┼──────────────────────────┤
-   │                          │                          │
-   │ SendPacket ─────────────►│                          │
-   │                          │                          │
-   │                          │ RecvPacket ─────────────►│
-   │                          │                          │
-   │                          │              Mint vouchers│
-   │                          │                          │
-   │                          │◄──────────── WriteAck ───│
-   │                          │                          │
-   │◄──────────── AckPacket ──│                          │
-   │                          │                          │
-   │ Confirm                  │                          │
-   │ transfer                 │                          │
-```
+<IBCTransferDiagram client:load />
 
 ### Relayers
 
@@ -179,24 +128,7 @@ Major relayers:
 
 Проблема app-chains: каждый chain должен bootstrap свой validator set и security. Для нового проекта это сложно — нужно привлечь капитал и validators. Interchain Security решает это: новые chains могут "арендовать" security у Cosmos Hub. ATOM stakers валидируют multiple chains и получают rewards от всех.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│               Interchain Security (ICS)                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Provider Chain (Cosmos Hub):                               │
-│  - ATOM stakers validate multiple chains                    │
-│  - Slashing applies across chains                           │
-│                                                             │
-│  Consumer Chains:                                           │
-│  - Inherit security from provider                           │
-│  - Share validators set                                     │
-│  - Pay fees to provider chain                               │
-│                                                             │
-│  Examples: Neutron, Stride (as consumer chains)             │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<InterchainSecurityDiagram client:load />
 
 ## Data для анализа
 
