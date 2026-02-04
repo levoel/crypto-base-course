@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 15
 ---
 
-import { BlockchainTrilemmaDiagram, RollupArchitectureDiagram, VerticalScalingDiagram, ShardingDiagram, L2SolutionsDiagram } from '../../../components/diagrams/Layer2Diagrams';
+import { BlockchainTrilemmaDiagram, RollupArchitectureDiagram, VerticalScalingDiagram, ShardingDiagram, L2SolutionsDiagram, StateChannelDiagram, PlasmaDiagram } from '../../../components/diagrams/Layer2Diagrams';
 
 # The Scaling Problem
 
@@ -125,42 +125,15 @@ Ethereum's roadmap: "Rollup-centric" — L1 optimized for data availability, L2s
 
 State channels — самый ранний подход к L2. Идея проста: два участника открывают "канал", обмениваются подписанными сообщениями off-chain, и только финальное состояние записывается on-chain.
 
-```
-Alice ─────► Channel Contract ◄───── Bob
-              │
-              │ (off-chain messages)
-              ▼
-Alice ◄─────────────────────────────► Bob
-              │
-              │ (final state on-chain)
-              ▼
-Alice ─────► Channel Contract ◄───── Bob
-```
+<StateChannelDiagram client:load />
 
 - **Example**: Lightning Network (Bitcoin), Raiden (Ethereum)
-- **Pros**: Instant finality, minimal fees
-- **Cons**: Requires both parties online, limited use cases
 
 ### Plasma (поколение 2)
 
 Plasma (2017) — попытка создать "дочерние цепи", которые периодически публикуют merkle root состояния на L1. Plasma обещала миллионы TPS, но столкнулась с "data availability problem" — если оператор скрывает данные, пользователи не могут доказать свои права.
 
-```
-L1 (Ethereum)
-    │
-    └──► Plasma Contract
-              │
-              ▼
-        Plasma Chain (operator)
-              │
-         ┌────┴────┐
-         │         │
-       Block     Block
-       [txs]     [txs]
-              │
-              ▼
-         Merkle Root → L1
-```
+<PlasmaDiagram client:load />
 
 - **Pros**: High throughput
 - **Cons**: Exit games complex, data availability issues

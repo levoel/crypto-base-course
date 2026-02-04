@@ -182,108 +182,146 @@ export function BlockStructureDiagram() {
 export function P2PNetworkDiagram() {
   return (
     <DiagramContainer title="Bitcoin P2P Network">
-      <div className="flex flex-col gap-6">
-        {/* Top row */}
-        <div className="flex items-center justify-center gap-4">
-          <Tooltip content={
-            <div>
-              <strong className="text-blue-300">Full Node</strong>
-              <p className="mt-2">Хранит полную копию блокчейна (~500GB). Валидирует все правила протокола независимо.</p>
-              <p className="mt-1 text-gray-400 text-xs">"Don't trust, verify" — проверяет каждую транзакцию</p>
-            </div>
-          }>
-            <FlowNode variant="service" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">Full Node</div>
+      <div className="flex flex-col items-center gap-4">
+        {/* Network mesh visualization */}
+        <div className="relative w-full" style={{ height: '260px' }}>
+          {/* SVG for connection lines - rendered behind nodes */}
+          <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 0 }}>
+            {/* Center to Top */}
+            <line x1="50%" y1="50%" x2="50%" y2="15%" stroke="#4b5563" strokeWidth="2" strokeDasharray="4,4" />
+            {/* Center to Left */}
+            <line x1="50%" y1="50%" x2="12%" y2="50%" stroke="#4b5563" strokeWidth="2" strokeDasharray="4,4" />
+            {/* Center to Right */}
+            <line x1="50%" y1="50%" x2="88%" y2="50%" stroke="#4b5563" strokeWidth="2" strokeDasharray="4,4" />
+            {/* Center to Bottom Left */}
+            <line x1="50%" y1="50%" x2="25%" y2="85%" stroke="#4b5563" strokeWidth="2" strokeDasharray="4,4" />
+            {/* Center to Bottom Right */}
+            <line x1="50%" y1="50%" x2="75%" y2="85%" stroke="#4b5563" strokeWidth="2" strokeDasharray="4,4" />
+            {/* Top to Left */}
+            <line x1="50%" y1="15%" x2="12%" y2="50%" stroke="#374151" strokeWidth="1" strokeDasharray="2,4" />
+            {/* Top to Right */}
+            <line x1="50%" y1="15%" x2="88%" y2="50%" stroke="#374151" strokeWidth="1" strokeDasharray="2,4" />
+            {/* Left to Bottom Left */}
+            <line x1="12%" y1="50%" x2="25%" y2="85%" stroke="#374151" strokeWidth="1" strokeDasharray="2,4" />
+            {/* Right to Bottom Right */}
+            <line x1="88%" y1="50%" x2="75%" y2="85%" stroke="#374151" strokeWidth="1" strokeDasharray="2,4" />
+          </svg>
+
+          {/* Center Full Node */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-blue-300">Full Node</strong>
+                <p className="mt-2">Центральный узел в mesh-сети. Подключён к множеству peers.</p>
+                <p className="mt-1 text-gray-400 text-xs">Gossip protocol: информация распространяется за секунды</p>
               </div>
-            </FlowNode>
-          </Tooltip>
+            }>
+              <FlowNode variant="service" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">Full Node</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
 
-          <Arrow direction="right" />
-
-          <Tooltip content={
-            <div>
-              <strong className="text-blue-300">Full Node</strong>
-              <p className="mt-2">Узлы связаны P2P: каждый node подключён к 8-125 peers.</p>
-              <p className="mt-1 text-gray-400 text-xs">Gossip protocol: информация распространяется за секунды</p>
-            </div>
-          }>
-            <FlowNode variant="service" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">Full Node</div>
+          {/* Top Full Node */}
+          <div className="absolute left-1/2 top-0 -translate-x-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-blue-300">Full Node</strong>
+                <p className="mt-2">Хранит полную копию блокчейна (~500GB). Валидирует все правила протокола независимо.</p>
+                <p className="mt-1 text-gray-400 text-xs">"Don't trust, verify" — проверяет каждую транзакцию</p>
               </div>
-            </FlowNode>
-          </Tooltip>
+            }>
+              <FlowNode variant="service" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">Full Node</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
 
-          <Arrow direction="right" />
-
-          <Tooltip content={
-            <div>
-              <strong className="text-amber-300">Mining Node</strong>
-              <p className="mt-2">Full Node + специализированное оборудование (ASIC) для Proof of Work.</p>
-              <p className="mt-1 text-gray-400 text-xs">Создаёт новые блоки, получает block reward + fees</p>
-            </div>
-          }>
-            <FlowNode variant="queue" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">Mining Node</div>
+          {/* Left Mining Node */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-amber-300">Mining Node</strong>
+                <p className="mt-2">Full Node + специализированное оборудование (ASIC) для Proof of Work.</p>
+                <p className="mt-1 text-gray-400 text-xs">Создаёт новые блоки, получает block reward + fees</p>
               </div>
-            </FlowNode>
-          </Tooltip>
+            }>
+              <FlowNode variant="queue" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">Mining</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
+
+          {/* Right Full Node */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-blue-300">Full Node</strong>
+                <p className="mt-2">Узлы связаны P2P: каждый node подключён к 8-125 peers.</p>
+              </div>
+            }>
+              <FlowNode variant="service" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">Full Node</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
+
+          {/* Bottom Left SPV */}
+          <div className="absolute left-1/4 bottom-0 -translate-x-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-purple-300">SPV Node (Light)</strong>
+                <p className="mt-2">Хранит только заголовки блоков (~100MB). Доверяет full nodes для Merkle proofs.</p>
+                <p className="mt-1 text-gray-400 text-xs">Используется в мобильных кошельках</p>
+              </div>
+            }>
+              <FlowNode variant="database" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">SPV</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
+
+          {/* Bottom Right Full Node */}
+          <div className="absolute right-1/4 bottom-0 translate-x-1/2" style={{ zIndex: 1 }}>
+            <Tooltip content={
+              <div>
+                <strong className="text-blue-300">Full Node</strong>
+                <p className="mt-2">Сеть децентрализована: нет единой точки отказа.</p>
+              </div>
+            }>
+              <FlowNode variant="service" className="cursor-help">
+                <div className="text-center">
+                  <div className="font-bold text-sm">Full Node</div>
+                </div>
+              </FlowNode>
+            </Tooltip>
+          </div>
         </div>
 
-        {/* Connection arrows */}
-        <div className="flex justify-around px-12">
-          <Arrow direction="down" />
-          <Arrow direction="down" />
-          <Arrow direction="down" />
-        </div>
-
-        {/* Bottom row */}
-        <div className="flex items-center justify-center gap-4">
-          <Tooltip content={
-            <div>
-              <strong className="text-purple-300">SPV Node (Light)</strong>
-              <p className="mt-2">Хранит только заголовки блоков (~100MB). Доверяет full nodes для Merkle proofs.</p>
-              <p className="mt-1 text-gray-400 text-xs">Используется в мобильных кошельках</p>
-            </div>
-          }>
-            <FlowNode variant="database" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">SPV Node</div>
-              </div>
-            </FlowNode>
-          </Tooltip>
-
-          <div className="w-8" />
-
-          <Tooltip content={
-            <div>
-              <strong className="text-blue-300">Full Node</strong>
-              <p className="mt-2">Независимая валидация — основа безопасности сети.</p>
-            </div>
-          }>
-            <FlowNode variant="service" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">Full Node</div>
-              </div>
-            </FlowNode>
-          </Tooltip>
-
-          <div className="w-8" />
-
-          <Tooltip content={
-            <div>
-              <strong className="text-blue-300">Full Node</strong>
-              <p className="mt-2">Сеть децентрализована: нет единой точки отказа.</p>
-            </div>
-          }>
-            <FlowNode variant="service" className="cursor-help">
-              <div className="text-center">
-                <div className="font-bold">Full Node</div>
-              </div>
-            </FlowNode>
-          </Tooltip>
+        {/* Legend */}
+        <div className="flex gap-4 text-xs text-gray-400 border-t border-gray-700 pt-3 w-full justify-center">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-blue-500/50 rounded"></div>
+            <span>Full Node (~15,000)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-amber-500/50 rounded"></div>
+            <span>Mining Node</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-purple-500/50 rounded"></div>
+            <span>SPV/Light</span>
+          </div>
         </div>
       </div>
     </DiagramContainer>

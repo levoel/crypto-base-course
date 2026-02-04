@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 15
 ---
 
-import { PoSVariantsDiagram, ValidatorConcentrationDiagram } from '../../../components/diagrams/AltL1Diagrams';
+import { PoSVariantsDiagram, ValidatorConcentrationDiagram, FinalityComparisonDiagram, ExecutionModelsDiagram } from '../../../components/diagrams/AltL1Diagrams';
 
 # L1 Trade-offs
 
@@ -52,29 +52,7 @@ import { PoSVariantsDiagram, ValidatorConcentrationDiagram } from '../../../comp
 
 Finality — когда транзакция становится irreversible. Это критически важно для data engineering: когда можно считать данные "финальными" и безопасно индексировать? Разные chains имеют **радикально разные** finality models.
 
-```
-Ethereum:
-  ┌─────────┐     ┌─────────┐     ┌─────────┐
-  │  Slot   │────►│  Slot   │────►│  Slot   │ ... (32 slots = epoch)
-  │  12s    │     │  12s    │     │  12s    │
-  └─────────┘     └─────────┘     └─────────┘
-                                        │
-                                   2 epochs = finality (~13 min)
-
-Solana:
-  ┌─────────┐     ┌─────────┐     ┌─────────┐
-  │  Slot   │────►│  Slot   │────►│  Slot   │
-  │  400ms  │     │  400ms  │     │  400ms  │
-  └─────────┘     └─────────┘     └─────────┘
-                        │
-                   ~32 slots = optimistic finality (~12s)
-
-Tendermint:
-  ┌─────────┐
-  │  Block  │ ← 2/3+ validators sign = INSTANT finality
-  │  ~6s    │
-  └─────────┘
-```
+<FinalityComparisonDiagram client:load />
 
 ## Execution Models
 
@@ -82,20 +60,7 @@ Tendermint:
 
 ### Sequential vs Parallel
 
-```
-Ethereum (Sequential):
-  Tx1 ──► Tx2 ──► Tx3 ──► Tx4
-  │       │       │       │
-  State changes must be ordered
-
-Solana (Parallel):
-  Tx1 (Account A) ──┬──► New State
-  Tx2 (Account B) ──┤
-  Tx3 (Account C) ──┤
-  Tx4 (Account A) ──┴──► (waits for Tx1)
-
-  Sealevel runtime: parallel execution if no conflicts
-```
+<ExecutionModelsDiagram client:load />
 
 <Callout type="warning">
 Параллельное выполнение требует объявления accessed accounts заранее. Это усложняет некоторые DeFi паттерны.

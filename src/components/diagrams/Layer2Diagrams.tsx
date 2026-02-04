@@ -523,3 +523,463 @@ export function BlockchainTrilemmaDiagram() {
     </DiagramContainer>
   );
 }
+
+export function OptimisticRollupArchDiagram() {
+  return (
+    <DiagramContainer title="Optimistic Rollup Architecture" color="amber">
+      <div className="flex flex-col gap-3">
+        {/* L2 components */}
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+          <div className="text-amber-300 font-bold text-xs mb-2 text-center">Layer 2 (Off-chain)</div>
+          <div className="flex items-center justify-center gap-3">
+            <Tooltip content={<div><strong>Users</strong><p className="mt-1">Submit transactions to sequencer</p></div>}>
+              <FlowNode type="input" className="cursor-help">
+                <div className="text-xs text-center">Users</div>
+              </FlowNode>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>Sequencer</strong><p className="mt-1">Orders, executes, and batches transactions off-chain</p></div>}>
+              <div className="bg-amber-500/30 border border-amber-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-amber-300 font-bold text-xs">Sequencer</div>
+                <div className="text-xs text-gray-400">Execute off-chain</div>
+              </div>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>Batch</strong><p className="mt-1">State Root + Compressed TX Data</p></div>}>
+              <div className="bg-gray-700/50 border border-gray-600 rounded px-3 py-2 cursor-help">
+                <div className="text-xs">Batch</div>
+                <div className="text-xs text-gray-500">state + data</div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+
+        <Arrow direction="down" className="self-center" />
+
+        {/* L1 components */}
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+          <div className="text-blue-300 font-bold text-xs mb-2 text-center">Layer 1 (Ethereum)</div>
+          <div className="flex items-center justify-center gap-3">
+            <Tooltip content={<div><strong>L1 Inbox</strong><p className="mt-1">Receives batches and stores transaction data</p></div>}>
+              <div className="bg-blue-500/30 border border-blue-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-blue-300 font-bold text-xs">L1 Inbox</div>
+              </div>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>7 Day Challenge</strong><p className="mt-1">Anyone can submit fraud proof during this period</p></div>}>
+              <div className="bg-rose-500/20 border border-rose-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-rose-300 text-xs">7 day challenge</div>
+              </div>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>Finalized</strong><p className="mt-1">State is considered final after challenge period</p></div>}>
+              <div className="bg-green-500/20 border border-green-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-green-300 text-xs">Finalized</div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ArbitrumArchitectureDiagram() {
+  return (
+    <DiagramContainer title="Arbitrum Architecture" color="blue">
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Tooltip content={<div><strong>Sequencer</strong><p className="mt-1">Operated by Offchain Labs, orders transactions</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded p-2 cursor-help">
+              <div className="text-blue-300 font-bold text-xs">Sequencer</div>
+              <div className="text-xs text-gray-400">(Offchain Labs)</div>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>ArbOS</strong><p className="mt-1">Modified Geth + custom precompiles</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded p-2 cursor-help">
+              <div className="text-blue-300 font-bold text-xs">ArbOS</div>
+              <div className="text-xs text-gray-400">(Geth + custom)</div>
+            </div>
+          </Tooltip>
+        </div>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>Rollup Protocol</strong><p className="mt-1">Inbox (batches), Outbox (withdrawals), RollupCore (state roots)</p></div>}>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded p-2 cursor-help">
+            <div className="text-purple-300 font-bold text-xs text-center">Rollup Protocol</div>
+            <div className="grid grid-cols-3 gap-1 mt-1 text-xs">
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-center">Inbox</div>
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-center">Outbox</div>
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-center">RollupCore</div>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <div className="bg-gray-700/50 border border-gray-600 rounded p-2 text-center">
+          <div className="text-xs">Ethereum L1</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function OPStackDiagram() {
+  return (
+    <DiagramContainer title="OP Stack Architecture" color="rose">
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Tooltip content={<div><strong>op-node</strong><p className="mt-1">Consensus client, derivation from L1</p></div>}>
+            <div className="bg-rose-500/20 border border-rose-500/50 rounded p-2 cursor-help">
+              <div className="text-rose-300 font-bold text-xs">op-node</div>
+              <div className="text-xs text-gray-400">(consensus)</div>
+            </div>
+          </Tooltip>
+          <Tooltip content={<div><strong>op-geth</strong><p className="mt-1">Execution client (modified Geth)</p></div>}>
+            <div className="bg-rose-500/20 border border-rose-500/50 rounded p-2 cursor-help">
+              <div className="text-rose-300 font-bold text-xs">op-geth</div>
+              <div className="text-xs text-gray-400">(execution)</div>
+            </div>
+          </Tooltip>
+        </div>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>L1 Contracts (Bedrock)</strong><p className="mt-1">OptimismPortal, L2OutputOracle, SystemConfig</p></div>}>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded p-2 cursor-help">
+            <div className="text-blue-300 font-bold text-xs text-center">L1 Contracts (Bedrock)</div>
+            <div className="grid grid-cols-3 gap-1 mt-1 text-xs">
+              <div className="bg-blue-900/30 rounded px-1 py-1 text-center">Portal</div>
+              <div className="bg-blue-900/30 rounded px-1 py-1 text-center">L2Output</div>
+              <div className="bg-blue-900/30 rounded px-1 py-1 text-center">Config</div>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <div className="bg-gray-700/50 border border-gray-600 rounded p-2 text-center">
+          <div className="text-xs">Ethereum L1</div>
+        </div>
+
+        <div className="bg-green-500/10 border border-green-500/30 rounded p-2 text-center">
+          <div className="text-green-300 text-xs font-bold">Superchain</div>
+          <div className="text-xs text-gray-400">OP + Base + Zora + Mode + ...</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ZkRollupArchDiagram() {
+  return (
+    <DiagramContainer title="ZK Rollup Architecture" color="purple">
+      <div className="flex flex-col gap-3">
+        {/* L2 components */}
+        <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+          <div className="text-purple-300 font-bold text-xs mb-2 text-center">Layer 2 (Off-chain)</div>
+          <div className="flex items-center justify-center gap-2">
+            <Tooltip content={<div><strong>Users</strong><p className="mt-1">Submit transactions</p></div>}>
+              <FlowNode type="input" className="cursor-help">
+                <div className="text-xs">Users</div>
+              </FlowNode>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>Sequencer</strong><p className="mt-1">Orders and batches transactions</p></div>}>
+              <div className="bg-purple-500/30 border border-purple-500/50 rounded px-2 py-1 cursor-help">
+                <div className="text-xs">Sequencer</div>
+              </div>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>Prover</strong><p className="mt-1">Generates ZK proof (GPU-intensive)</p></div>}>
+              <div className="bg-amber-500/30 border border-amber-500/50 rounded px-2 py-1 cursor-help">
+                <div className="text-amber-300 text-xs font-bold">Prover</div>
+                <div className="text-xs text-gray-400">ZK Proof</div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+
+        <Arrow direction="down" className="self-center" />
+
+        {/* L1 components */}
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+          <div className="text-blue-300 font-bold text-xs mb-2 text-center">Layer 1 (Ethereum)</div>
+          <div className="flex items-center justify-center gap-3">
+            <Tooltip content={<div><strong>Verifier Contract</strong><p className="mt-1">Verifies ZK proof on-chain (O(1) time)</p></div>}>
+              <div className="bg-blue-500/30 border border-blue-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-blue-300 text-xs font-bold">Verifier</div>
+                <div className="text-xs text-gray-400">O(1) verify</div>
+              </div>
+            </Tooltip>
+            <Arrow direction="right" />
+            <Tooltip content={<div><strong>State Finalized</strong><p className="mt-1">If proof valid, state immediately final (no challenge period)</p></div>}>
+              <div className="bg-green-500/20 border border-green-500/50 rounded px-3 py-2 cursor-help">
+                <div className="text-green-300 text-xs">Finalized</div>
+                <div className="text-xs text-gray-400">(instant)</div>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ProverPipelineDiagram() {
+  const stages = [
+    { name: 'Execution Trace', desc: 'Every opcode, memory, storage access' },
+    { name: 'Arithmetic Circuit', desc: 'Polynomial constraints (R1CS / AIR)' },
+    { name: 'Prover', desc: 'Generate ZK-SNARK/STARK proof' },
+  ];
+
+  return (
+    <DiagramContainer title="ZK Prover Pipeline" color="amber">
+      <div className="flex flex-col gap-2">
+        <Tooltip content={<div><strong>Input</strong><p className="mt-1">Batch of transactions to prove</p></div>}>
+          <div className="bg-gray-700/50 border border-gray-600 rounded p-2 cursor-help text-center">
+            <div className="text-xs">Transactions</div>
+          </div>
+        </Tooltip>
+
+        {stages.map((stage) => (
+          <div key={stage.name}>
+            <Arrow direction="down" className="self-center mx-auto block" />
+            <Tooltip content={<div><strong>{stage.name}</strong><p className="mt-1">{stage.desc}</p></div>}>
+              <div className="bg-amber-500/20 border border-amber-500/50 rounded p-2 cursor-help">
+                <div className="text-amber-300 font-bold text-xs text-center">{stage.name}</div>
+                <div className="text-xs text-gray-400 text-center">{stage.desc}</div>
+              </div>
+            </Tooltip>
+          </div>
+        ))}
+
+        <Arrow direction="down" className="self-center mx-auto block" />
+
+        <div className="bg-green-500/20 border border-green-500/50 rounded p-2 text-center">
+          <div className="text-green-300 font-bold text-xs">ZK Proof</div>
+          <div className="text-xs text-gray-400">Submit to L1</div>
+        </div>
+
+        <div className="text-xs text-gray-500 text-center mt-1">
+          Compute: GPU cluster, 100+ GB RAM, minutes-hours
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ProofAggregationDiagram() {
+  return (
+    <DiagramContainer title="Proof Aggregation" color="green">
+      <div className="flex items-center gap-3 justify-center">
+        <div className="flex flex-col gap-1">
+          {['Batch 1', 'Batch 2', 'Batch 3'].map((b) => (
+            <div key={b} className="bg-gray-700/50 border border-gray-600 rounded px-2 py-1 text-xs text-center">{b}</div>
+          ))}
+        </div>
+        <Arrow direction="right" />
+        <div className="flex flex-col gap-1">
+          {['Proof 1', 'Proof 2', 'Proof 3'].map((p) => (
+            <div key={p} className="bg-purple-500/20 border border-purple-500/50 rounded px-2 py-1 text-xs text-center">{p}</div>
+          ))}
+        </div>
+        <Arrow direction="right" />
+        <Tooltip content={<div><strong>Aggregated Proof</strong><p className="mt-1">One L1 verification for multiple batches</p></div>}>
+          <div className="bg-green-500/20 border border-green-500/50 rounded px-3 py-4 cursor-help text-center">
+            <div className="text-green-300 font-bold text-xs">Aggregated</div>
+            <div className="text-green-300 font-bold text-xs">Proof</div>
+          </div>
+        </Tooltip>
+        <Arrow direction="right" />
+        <div className="bg-blue-500/20 border border-blue-500/50 rounded px-2 py-1 text-xs">L1</div>
+      </div>
+      <div className="text-xs text-gray-400 text-center mt-2">
+        Benefit: Amortizes L1 verification cost across batches
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function StateChannelDiagram() {
+  return (
+    <DiagramContainer title="State Channel Flow" color="blue">
+      <div className="flex flex-col gap-2">
+        <Tooltip content={<div><strong>Open Channel</strong><p className="mt-1">Lock funds in contract on L1</p></div>}>
+          <div className="flex items-center justify-center gap-3 bg-blue-500/10 border border-blue-500/30 rounded p-2 cursor-help">
+            <div className="bg-blue-500/20 rounded px-2 py-1 text-xs">Alice</div>
+            <Arrow direction="right" />
+            <div className="bg-blue-500/30 border border-blue-500/50 rounded px-3 py-1 text-xs">Channel Contract</div>
+            <Arrow direction="left" />
+            <div className="bg-blue-500/20 rounded px-2 py-1 text-xs">Bob</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>Off-chain</strong><p className="mt-1">Exchange signed messages instantly</p></div>}>
+          <div className="bg-green-500/10 border border-green-500/30 rounded p-2 cursor-help text-center">
+            <div className="text-green-300 text-xs font-bold">Off-chain Messages</div>
+            <div className="text-xs text-gray-400">Alice ↔ Bob (instant, free)</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>Close Channel</strong><p className="mt-1">Submit final state to L1</p></div>}>
+          <div className="flex items-center justify-center gap-3 bg-amber-500/10 border border-amber-500/30 rounded p-2 cursor-help">
+            <div className="bg-amber-500/20 rounded px-2 py-1 text-xs">Final State</div>
+            <Arrow direction="right" />
+            <div className="bg-amber-500/30 border border-amber-500/50 rounded px-3 py-1 text-xs">On-chain Settlement</div>
+          </div>
+        </Tooltip>
+
+        <div className="grid grid-cols-2 gap-2 text-xs mt-1">
+          <div className="text-green-400">✅ Instant finality, minimal fees</div>
+          <div className="text-rose-400">❌ Both parties must be online</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function PlasmaDiagram() {
+  return (
+    <DiagramContainer title="Plasma Architecture" color="purple">
+      <div className="flex flex-col gap-2">
+        <div className="bg-blue-500/20 border border-blue-500/50 rounded p-2 text-center">
+          <div className="text-blue-300 font-bold text-xs">L1 (Ethereum)</div>
+        </div>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>Plasma Contract</strong><p className="mt-1">Accepts merkle root commitments from child chain</p></div>}>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded p-2 cursor-help text-center">
+            <div className="text-purple-300 text-xs">Plasma Contract</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={<div><strong>Plasma Chain</strong><p className="mt-1">Operator runs child chain, commits merkle roots</p></div>}>
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded p-3 cursor-help">
+            <div className="text-purple-300 font-bold text-xs text-center">Plasma Chain (operator)</div>
+            <div className="flex gap-2 justify-center mt-2">
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-xs">Block [txs]</div>
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-xs">Block [txs]</div>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="up" className="self-center" />
+
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded p-2 text-center">
+          <div className="text-amber-300 text-xs">Merkle Root → L1</div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs mt-1">
+          <div className="text-green-400">✅ High throughput</div>
+          <div className="text-rose-400">❌ Data availability issues</div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function CelestiaDiagram() {
+  return (
+    <DiagramContainer title="Celestia DA Layer" color="purple">
+      <div className="flex flex-col gap-3">
+        <Tooltip content={<div><strong>Purpose-built DA layer</strong><p className="mt-1">Only does data availability (no execution)</p></div>}>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded p-3 cursor-help">
+            <div className="text-purple-300 font-bold text-center">Celestia</div>
+            <div className="text-xs text-gray-400 text-center mt-1">
+              2D Reed-Solomon + Data Availability Sampling
+            </div>
+          </div>
+        </Tooltip>
+
+        <div className="flex items-center justify-center gap-3">
+          <Tooltip content={<div><strong>Rollup Sequencer</strong><p className="mt-1">Posts data to Celestia instead of Ethereum</p></div>}>
+            <div className="bg-amber-500/20 border border-amber-500/50 rounded px-3 py-2 cursor-help">
+              <div className="text-amber-300 text-xs">Rollup</div>
+            </div>
+          </Tooltip>
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500">DA</span>
+            <Arrow direction="right" />
+          </div>
+          <div className="bg-purple-500/30 border border-purple-500/50 rounded px-3 py-2">
+            <div className="text-purple-300 text-xs">Celestia</div>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500">proof</span>
+            <Arrow direction="right" />
+          </div>
+          <Tooltip content={<div><strong>Ethereum L1</strong><p className="mt-1">Settlement layer, only receives DA attestation</p></div>}>
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded px-3 py-2 cursor-help">
+              <div className="text-blue-300 text-xs">ETH L1</div>
+            </div>
+          </Tooltip>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-gray-700/50 rounded p-2">
+            <div className="text-gray-400">Security</div>
+            <div className="text-amber-300">Celestia consensus</div>
+          </div>
+          <div className="bg-gray-700/50 rounded p-2">
+            <div className="text-gray-400">Cost</div>
+            <div className="text-green-300">~$0.001/KB</div>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function EigenDADiagram() {
+  return (
+    <DiagramContainer title="EigenDA (Restaking)" color="blue">
+      <div className="flex flex-col gap-3">
+        <Tooltip content={<div><strong>EigenLayer Restaking</strong><p className="mt-1">Uses ETH validators who restake for additional yield</p></div>}>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded p-3 cursor-help">
+            <div className="text-blue-300 font-bold text-center">EigenDA</div>
+            <div className="text-xs text-gray-400 text-center mt-1">
+              Restaked ETH validators
+            </div>
+          </div>
+        </Tooltip>
+
+        <div className="flex items-center justify-center gap-3">
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded px-3 py-2">
+            <div className="text-amber-300 text-xs">Rollup</div>
+          </div>
+          <Arrow direction="right" />
+          <div className="bg-blue-500/30 border border-blue-500/50 rounded px-3 py-2">
+            <div className="text-blue-300 text-xs">EigenDA</div>
+            <div className="text-xs text-gray-500">(restaked)</div>
+          </div>
+          <Arrow direction="right" />
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded px-3 py-2">
+            <div className="text-blue-300 text-xs">ETH L1</div>
+            <div className="text-xs text-gray-500">(proof)</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-gray-700/50 rounded p-2">
+            <div className="text-gray-400">Security</div>
+            <div className="text-blue-300">Staked ETH economic security</div>
+          </div>
+          <div className="bg-gray-700/50 rounded p-2">
+            <div className="text-gray-400">Cost</div>
+            <div className="text-green-300">Competitive with blobs</div>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}

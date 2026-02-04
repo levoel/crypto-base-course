@@ -335,3 +335,385 @@ export function HybridConsensusDiagram() {
     </DiagramContainer>
   );
 }
+
+export function NPoSElectionDiagram() {
+  return (
+    <DiagramContainer title="NPoS Election Process" color="purple">
+      <div className="flex flex-col gap-3">
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Nominators</strong>
+            <p className="mt-2">DOT holders who select up to 16 validators they trust with their stake</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-blue-300 font-bold text-center">Nominators</div>
+            <div className="text-xs text-gray-400 text-center">Select up to 16 validators</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={
+          <div>
+            <strong className="text-amber-300">Phragmén Election</strong>
+            <p className="mt-2">Algorithm selects active validator set to maximize decentralization:</p>
+            <ul className="mt-1 text-xs space-y-1">
+              <li>• Proportional stake distribution</li>
+              <li>• Minimizes largest validator advantage</li>
+              <li>• Currently 297 active validators</li>
+            </ul>
+          </div>
+        }>
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-amber-300 font-bold text-center">Phragmén Algorithm</div>
+            <div className="text-xs text-gray-400 text-center">Optimal validator selection</div>
+          </div>
+        </Tooltip>
+
+        <Arrow direction="down" className="self-center" />
+
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Active Validators</strong>
+            <p className="mt-2">Selected set produces blocks and earns rewards</p>
+            <p className="mt-1 text-xs text-gray-400">⚠️ Both validators AND nominators can be slashed</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-green-300 font-bold text-center">Active Validator Set</div>
+            <div className="text-xs text-gray-400 text-center">~297 validators on Polkadot</div>
+          </div>
+        </Tooltip>
+
+        <div className="bg-rose-500/10 border border-rose-500/30 rounded px-3 py-2 text-center">
+          <span className="text-rose-300 text-xs">Slashing: Both validators AND nominators lose stake</span>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function SlotAuctionDiagram() {
+  return (
+    <DiagramContainer title="Parachain Slot Auction" color="amber">
+      <div className="space-y-3">
+        <Tooltip content={
+          <div>
+            <strong className="text-amber-300">Candle Auction</strong>
+            <p className="mt-2">Modified candle auction prevents sniping (last-second bids)</p>
+            <p className="mt-1 text-xs text-gray-400">Random end time revealed after auction closes</p>
+          </div>
+        }>
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-amber-300 font-bold">Candle Auction Mechanism</div>
+            <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+              <div className="bg-amber-900/30 rounded p-2">
+                <div className="text-gray-400">Duration</div>
+                <div className="text-white">~7 days</div>
+              </div>
+              <div className="bg-amber-900/30 rounded p-2">
+                <div className="text-gray-400">End time</div>
+                <div className="text-white">Random (anti-snipe)</div>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-purple-300">Crowdloan</strong>
+            <p className="mt-2">Projects crowdsource DOT from community for bidding</p>
+            <ul className="mt-1 text-xs space-y-1">
+              <li>• Contributors loan DOT (not give)</li>
+              <li>• Receive parachain tokens in return</li>
+              <li>• DOT returned after lease ends</li>
+            </ul>
+          </div>
+        }>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-purple-300 font-bold">Crowdloan Model</div>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-xs">Community DOT</div>
+              <Arrow direction="right" />
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-xs">Bid</div>
+              <Arrow direction="right" />
+              <div className="bg-purple-900/30 rounded px-2 py-1 text-xs">Tokens</div>
+            </div>
+          </div>
+        </Tooltip>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-gray-700/50 border border-gray-600 rounded p-2 text-center">
+            <div className="text-xs text-gray-400">Lease Period</div>
+            <div className="text-sm text-white">6 weeks — 2 years</div>
+          </div>
+          <div className="bg-gray-700/50 border border-gray-600 rounded p-2 text-center">
+            <div className="text-xs text-gray-400">Typical Cost</div>
+            <div className="text-sm text-white">$1M — $50M+</div>
+          </div>
+        </div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function XCMPFlowDiagram() {
+  return (
+    <DiagramContainer title="XCMP Message Flow" color="green">
+      <div className="flex items-start gap-4">
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Parachain A</strong>
+            <p className="mt-2">Source chain initiates XCM message</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help text-center">
+            <div className="text-blue-300 font-bold text-sm">Parachain A</div>
+            <div className="text-xs text-gray-400 mt-1">Source</div>
+          </div>
+        </Tooltip>
+
+        <div className="flex flex-col items-center gap-1 pt-3">
+          <Arrow direction="right" />
+          <span className="text-xs text-gray-500">XCM</span>
+        </div>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-rose-300">Relay Chain</strong>
+            <p className="mt-2">Routes message between parachains (HRMP)</p>
+            <p className="mt-1 text-xs text-gray-400">Future XCMP: direct communication</p>
+          </div>
+        }>
+          <div className="bg-rose-500/20 border border-rose-500/50 rounded-lg p-3 cursor-help text-center">
+            <div className="text-rose-300 font-bold text-sm">Relay Chain</div>
+            <div className="text-xs text-gray-400 mt-1">Route message</div>
+            <div className="text-xs text-rose-400 mt-1">(HRMP)</div>
+          </div>
+        </Tooltip>
+
+        <div className="flex flex-col items-center gap-1 pt-3">
+          <Arrow direction="right" />
+          <span className="text-xs text-gray-500">Route</span>
+        </div>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Parachain B</strong>
+            <p className="mt-2">Receives and executes XCM instruction</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help text-center">
+            <div className="text-green-300 font-bold text-sm">Parachain B</div>
+            <div className="text-xs text-gray-400 mt-1">Execute</div>
+          </div>
+        </Tooltip>
+      </div>
+
+      <div className="mt-3 text-xs text-gray-400 border-t border-gray-700 pt-2 space-y-1">
+        <div><span className="text-amber-300">Current (HRMP):</span> All messages routed via Relay Chain</div>
+        <div><span className="text-green-300">Future (XCMP):</span> Direct parachain-to-parachain messaging</div>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function SubstrateFrameworkDiagram() {
+  return (
+    <DiagramContainer title="Substrate Framework" color="purple">
+      <div className="flex flex-col gap-2">
+        <Tooltip content={
+          <div>
+            <strong className="text-purple-300">Pre-built Pallets (Modules)</strong>
+            <p className="mt-2">Ready-to-use blockchain functionality</p>
+          </div>
+        }>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-purple-300 font-bold text-sm mb-2">Pallets (Modules)</div>
+            <div className="grid grid-cols-3 gap-1 text-xs">
+              {['pallet-balances', 'pallet-staking', 'pallet-contracts', 'pallet-evm', 'pallet-xcm', 'pallet-gov'].map((p) => (
+                <div key={p} className="bg-purple-900/30 rounded px-2 py-1 text-center">{p}</div>
+              ))}
+            </div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-amber-300">WASM Runtime</strong>
+            <p className="mt-2">Upgradeable without hard forks — just update WASM code via governance</p>
+          </div>
+        }>
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 cursor-help text-center">
+            <div className="text-amber-300 font-bold text-sm">Runtime = WASM blob</div>
+            <div className="text-xs text-gray-400">Forkless upgrades via governance</div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Client Layer</strong>
+            <p className="mt-2">Networking (libp2p), Consensus (BABE/GRANDPA), Database (RocksDB)</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-blue-300 font-bold text-sm mb-2">Client</div>
+            <div className="grid grid-cols-3 gap-1 text-xs">
+              <div className="bg-blue-900/30 rounded px-2 py-1 text-center">libp2p</div>
+              <div className="bg-blue-900/30 rounded px-2 py-1 text-center">Consensus</div>
+              <div className="bg-blue-900/30 rounded px-2 py-1 text-center">RocksDB</div>
+            </div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ParachainExamplesDiagram() {
+  const parachains = [
+    { name: 'Acala', desc: 'DeFi hub (stablecoin, DEX, liquid staking)', color: 'blue' },
+    { name: 'Moonbeam', desc: 'EVM-compatible smart contracts', color: 'purple' },
+    { name: 'Astar', desc: 'Multi-VM (EVM + WASM) dApp platform', color: 'green' },
+    { name: 'Phala', desc: 'Privacy-preserving computation', color: 'amber' },
+    { name: 'Centrifuge', desc: 'Real-world asset financing', color: 'rose' },
+  ];
+
+  return (
+    <DiagramContainer title="Notable Parachains" color="rose">
+      <div className="grid grid-cols-1 gap-2">
+        {parachains.map((p) => (
+          <Tooltip key={p.name} content={
+            <div>
+              <strong className={`text-${p.color}-300`}>{p.name}</strong>
+              <p className="mt-2">{p.desc}</p>
+            </div>
+          }>
+            <div className={`bg-${p.color}-500/20 border border-${p.color}-500/50 rounded px-3 py-2 cursor-help flex justify-between items-center`}>
+              <span className={`text-${p.color}-300 font-bold text-sm`}>{p.name}</span>
+              <span className="text-gray-400 text-xs">{p.desc}</span>
+            </div>
+          </Tooltip>
+        ))}
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function FinalityComparisonDiagram() {
+  return (
+    <DiagramContainer title="Finality Comparison" color="blue">
+      <div className="space-y-3">
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Ethereum</strong>
+            <p className="mt-2">32 slots per epoch, finality after 2 epochs</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-2 cursor-help">
+            <div className="flex items-center justify-between">
+              <span className="text-blue-300 font-bold text-sm">Ethereum</span>
+              <span className="text-xs text-gray-400">12s slots → 2 epochs ≈ 13 min finality</span>
+            </div>
+            <div className="flex gap-1 mt-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-blue-900/50 rounded w-8 h-4 text-xs flex items-center justify-center">S{i+1}</div>
+              ))}
+              <span className="text-gray-500 text-xs">...</span>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Solana</strong>
+            <p className="mt-2">400ms slots, optimistic finality ~32 slots (12s)</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-2 cursor-help">
+            <div className="flex items-center justify-between">
+              <span className="text-green-300 font-bold text-sm">Solana</span>
+              <span className="text-xs text-gray-400">400ms slots → ~32 slots ≈ 12s finality</span>
+            </div>
+            <div className="flex gap-0.5 mt-2">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="bg-green-900/50 rounded w-4 h-4"></div>
+              ))}
+              <span className="text-gray-500 text-xs">...</span>
+            </div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-purple-300">Tendermint (Cosmos)</strong>
+            <p className="mt-2">BFT consensus — 2/3+ validators sign = INSTANT finality</p>
+          </div>
+        }>
+          <div className="bg-purple-500/20 border border-purple-500/50 rounded-lg p-2 cursor-help">
+            <div className="flex items-center justify-between">
+              <span className="text-purple-300 font-bold text-sm">Tendermint</span>
+              <span className="text-xs text-gray-400">~6s blocks → INSTANT finality</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="bg-purple-900/50 rounded px-3 py-1 text-xs">Block</div>
+              <span className="text-xs text-purple-400">← 2/3+ sign = final</span>
+            </div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}
+
+export function ExecutionModelsDiagram() {
+  return (
+    <DiagramContainer title="Sequential vs Parallel Execution" color="amber">
+      <div className="grid grid-cols-2 gap-4">
+        <Tooltip content={
+          <div>
+            <strong className="text-blue-300">Sequential (Ethereum)</strong>
+            <p className="mt-2">Each transaction sees result of previous one</p>
+            <p className="mt-1 text-xs text-gray-400">Simpler but lower throughput</p>
+          </div>
+        }>
+          <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-blue-300 font-bold text-sm mb-2">Sequential (EVM)</div>
+            <div className="flex items-center gap-1 text-xs">
+              <div className="bg-blue-900/50 rounded px-2 py-1">Tx1</div>
+              <Arrow direction="right" />
+              <div className="bg-blue-900/50 rounded px-2 py-1">Tx2</div>
+              <Arrow direction="right" />
+              <div className="bg-blue-900/50 rounded px-2 py-1">Tx3</div>
+            </div>
+            <div className="text-xs text-gray-400 mt-2 text-center">One at a time</div>
+          </div>
+        </Tooltip>
+
+        <Tooltip content={
+          <div>
+            <strong className="text-green-300">Parallel (Solana)</strong>
+            <p className="mt-2">Non-conflicting transactions run simultaneously</p>
+            <p className="mt-1 text-xs text-gray-400">Requires declaring accessed accounts upfront</p>
+          </div>
+        }>
+          <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-3 cursor-help">
+            <div className="text-green-300 font-bold text-sm mb-2">Parallel (Sealevel)</div>
+            <div className="flex flex-col gap-1 text-xs">
+              <div className="flex gap-2">
+                <div className="bg-green-900/50 rounded px-2 py-1">Tx1 (A)</div>
+                <div className="bg-green-900/50 rounded px-2 py-1">Tx2 (B)</div>
+              </div>
+              <div className="flex gap-2">
+                <div className="bg-green-900/50 rounded px-2 py-1">Tx3 (C)</div>
+                <div className="bg-amber-900/50 rounded px-2 py-1">Tx4 (A) waits</div>
+              </div>
+            </div>
+            <div className="text-xs text-gray-400 mt-2 text-center">Concurrent if no conflict</div>
+          </div>
+        </Tooltip>
+      </div>
+    </DiagramContainer>
+  );
+}

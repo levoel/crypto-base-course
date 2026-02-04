@@ -5,7 +5,7 @@ difficulty: "intermediate"
 timeToComplete: 20
 ---
 
-import { PolkadotNetworkDiagram, HybridConsensusDiagram } from '../../../components/diagrams/AltL1Diagrams';
+import { PolkadotNetworkDiagram, HybridConsensusDiagram, NPoSElectionDiagram, SlotAuctionDiagram, XCMPFlowDiagram, SubstrateFrameworkDiagram, ParachainExamplesDiagram } from '../../../components/diagrams/AltL1Diagrams';
 
 # Polkadot & Parachains
 
@@ -55,24 +55,9 @@ Does:
 
 Parachains — application-specific chains, которые подключаются к Relay Chain. Каждый parachain имеет свою state machine, свой token (опционально), свою logic. Но security inherit от Relay Chain — validators Relay Chain валидируют parachain blocks.
 
-```
-Parachain = application-specific blockchain
+Parachains — application-specific blockchains с custom state transition logic, optional token economics, shared security от Relay Chain, и slot lease через auction или parathreads.
 
-Characteristics:
-- Custom state transition logic
-- Own token economics (optional)
-- Shared security from Relay Chain
-- Slot lease (auction or parathreads)
-
-Examples:
-┌───────────────────────────────────────────────────────────┐
-│  Acala: DeFi hub (stablecoin, DEX, liquid staking)       │
-│  Moonbeam: EVM-compatible smart contracts                │
-│  Astar: Multi-VM (EVM + WASM) dApp platform             │
-│  Phala: Privacy-preserving computation                   │
-│  Centrifuge: Real-world asset financing                  │
-└───────────────────────────────────────────────────────────┘
-```
+<ParachainExamplesDiagram client:load />
 
 ## Consensus
 
@@ -88,21 +73,7 @@ BABE (block production) и GRANDPA (finality) работают параллел�
 
 NPoS — уникальный staking mechanism Polkadot. Вместо delegation (как в Cosmos), используется **nomination**. Nominators выбирают до 16 validators, которым доверяют. Алгоритм Phragmén выбирает optimal set для максимизации decentralization. И nominators, и validators могут быть slashed.
 
-```
-Nominators → nominate validators they trust
-              │
-              ▼
-         ┌─────────┐
-         │ Phragmén│ (election algorithm)
-         │ election│
-         └────┬────┘
-              │
-              ▼
-Active validator set (297 validators on Polkadot)
-
-Slashing: Both validators AND nominators lose stake
-Rewards: Distributed proportionally
-```
+<NPoSElectionDiagram client:load />
 
 ## Parachain Lifecycle
 
@@ -112,29 +83,7 @@ Parachain slots — scarce resource. Их количество ограниче�
 
 Slot auctions используют "candle auction" mechanism с random end time — это prevents sniping (bidding at last second). Проекты lease slots на 6 недель — 2 года. Cost: миллионы долларов в DOT equivalent.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   Slot Auction                               │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Candle Auction (modified):                                 │
-│  - Bidding period: ~7 days                                  │
-│  - Random end time (prevents sniping)                       │
-│  - Highest bid wins slot                                    │
-│                                                             │
-│  Crowdloan:                                                 │
-│  - Projects can crowdsource DOT for bidding                │
-│  - Contributors loan DOT, get parachain tokens             │
-│  - DOT returned after lease period                         │
-│                                                             │
-│  Lease periods:                                             │
-│  - 6 weeks to 2 years (Polkadot)                           │
-│  - Multiple periods can be leased at once                  │
-│                                                             │
-│  Cost: $1M - $50M+ equivalent in DOT                       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<SlotAuctionDiagram client:load />
 
 ### Parathreads
 
@@ -155,26 +104,7 @@ XCMP (Cross-Chain Message Passing) — native механизм для communicat
 
 XCMP сообщения проходят через Relay Chain. Текущая реализация — HRMP (Horizontal Relay-routed Message Passing) — все messages идут через Relay Chain. Будущий full XCMP позволит direct communication между parachains.
 
-```
-Parachain A                Relay Chain               Parachain B
-     │                          │                         │
-     │ XCM Message              │                         │
-     │─────────────────────────►│                         │
-     │                          │                         │
-     │                    Include in Relay block          │
-     │                          │                         │
-     │                          │ Route to B              │
-     │                          │────────────────────────►│
-     │                          │                         │
-     │                          │                    Execute
-     │                          │                         │
-
-Current: HRMP (Horizontal Relay-routed Message Passing)
-         Messages go through Relay Chain
-
-Future: Direct XCMP
-        Messages between parachains directly
-```
+<XCMPFlowDiagram client:load />
 
 ### XCM (Cross-Consensus Message Format)
 
@@ -208,29 +138,7 @@ let sibling_parachain = MultiLocation {
 
 Substrate — modular framework для building blockchains, созданный Parity (компания Gavin Wood). Это "Cosmos SDK от Polkadot", но с несколькими unique features: runtime compiled to WASM, forkless upgrades (runtime обновляется через governance без hard fork), и rich ecosystem of pre-built pallets.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Substrate                                │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Pre-built pallets (modules):                               │
-│  - pallet-balances (token transfers)                        │
-│  - pallet-staking (PoS)                                     │
-│  - pallet-contracts (WASM smart contracts)                  │
-│  - pallet-evm (EVM compatibility)                           │
-│  - pallet-xcm (cross-chain messaging)                       │
-│                                                             │
-│  Runtime = WASM blob                                        │
-│  - Upgradeable without hard forks                           │
-│  - Just update WASM code via governance                     │
-│                                                             │
-│  Client:                                                    │
-│  - Networking (libp2p)                                      │
-│  - Consensus (BABE, AURA, GRANDPA)                         │
-│  - Database (RocksDB, ParityDB)                            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<SubstrateFrameworkDiagram client:load />
 
 ## Ecosystem Data
 

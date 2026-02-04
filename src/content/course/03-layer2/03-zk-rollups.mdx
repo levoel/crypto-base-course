@@ -5,7 +5,7 @@ difficulty: "advanced"
 timeToComplete: 25
 ---
 
-import { ZkEVMSpectrumDiagram } from '../../../components/diagrams/Layer2Diagrams';
+import { ZkEVMSpectrumDiagram, ZkRollupArchDiagram, ProverPipelineDiagram, ProofAggregationDiagram } from '../../../components/diagrams/Layer2Diagrams';
 
 # ZK Rollups
 
@@ -81,35 +81,7 @@ Prover                              Verifier
 
 ## ZK Rollup Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      ZK Rollup                               │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│   Users ──► Sequencer ──► Prover ──► L1 Verifier            │
-│      │          │            │            │                 │
-│      │    ┌─────┴────┐  ┌────┴────┐      │                 │
-│      │    │          │  │         │      │                 │
-│      │  Order &    Batch  Generate      │                 │
-│      │  Execute    txs    ZK Proof      │                 │
-│      │    │          │  │         │      │                 │
-│      │    └────┬─────┘  └────┬────┘      │                 │
-│      │         │             │           │                 │
-│      │         └──────┬──────┘           │                 │
-│      │                │                  │                 │
-│      │    State Root + Proof + Tx Data   │                 │
-│      │                │                  │                 │
-│      │                ▼                  │                 │
-│      │        ┌───────────────┐          │                 │
-│      │        │  L1 Verifier  │ ◄────────┘                 │
-│      │        │  Contract     │                            │
-│      │        └───────────────┘                            │
-│      │                │                                    │
-│      │    Verification: O(1) computation                   │
-│      │    If valid → State finalized                       │
-│      │                                                     │
-└─────────────────────────────────────────────────────────────┘
-```
+<ZkRollupArchDiagram client:load />
 
 ## zkEVM
 
@@ -167,47 +139,11 @@ Proof generation — самая ресурсоёмкая часть ZK rollups. 
 
 ### Prover Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   Prover Pipeline                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Transactions                                               │
-│       │                                                     │
-│       ▼                                                     │
-│  ┌───────────┐                                             │
-│  │ Execution │ → Execution trace                           │
-│  │   Trace   │   (every opcode, memory, storage access)    │
-│  └───────────┘                                             │
-│       │                                                     │
-│       ▼                                                     │
-│  ┌───────────┐                                             │
-│  │ Arithmetic│ → Constraints (polynomial equations)        │
-│  │  Circuit  │   R1CS / AIR                                │
-│  └───────────┘                                             │
-│       │                                                     │
-│       ▼                                                     │
-│  ┌───────────┐                                             │
-│  │   Prover  │ → ZK Proof                                  │
-│  │  (heavy)  │   SNARK / STARK                             │
-│  └───────────┘                                             │
-│       │                                                     │
-│  Compute: GPU cluster, minutes-hours                        │
-│  Memory: 100+ GB RAM                                        │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+<ProverPipelineDiagram client:load />
 
 ### Proof Aggregation
 
-```
-Batch 1 ──► Proof 1 ─┐
-Batch 2 ──► Proof 2 ─┼──► Aggregated Proof ──► L1
-Batch 3 ──► Proof 3 ─┘
-
-Benefit: One L1 verification for multiple batches
-         Amortizes verification cost
-```
+<ProofAggregationDiagram client:load />
 
 ## Current ZK Rollups
 
