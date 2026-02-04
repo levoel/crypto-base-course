@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.astro/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+labs/**/data/
+labs/**/.docker/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+**/*.pyc
+__pycache__/
+
+# Solana
+labs/solana/target/
+labs/solana/programs/**/target/
+
+# Hardhat
+labs/ethereum/hardhat/cache/
+labs/ethereum/hardhat/artifacts/
