@@ -9,7 +9,11 @@ import { AccountModelDiagram } from '../../../components/diagrams/EthereumDiagra
 
 # Архитектура Ethereum
 
-Ethereum — программируемый блокчейн, который расширяет идеи Bitcoin добавлением **smart contracts** и **World State**. Если Bitcoin — калькулятор, то Ethereum — компьютер.
+Ethereum — программируемый блокчейн, который расширяет идеи Bitcoin добавлением **smart contracts** и **World State**. Если Bitcoin — калькулятор (может только перемещать значения), то Ethereum — полноценный компьютер, способный выполнять произвольный код.
+
+Виталик Бутерин создал Ethereum в 2015 году, потому что Bitcoin Script слишком ограничен для сложных приложений. Ethereum позволяет создавать DeFi протоколы, NFT маркетплейсы, DAO, games — любую логику, которую можно закодировать. Цена этой гибкости — сложность: World State Ethereum в 50+ раз больше UTXO Set Bitcoin.
+
+Для data engineer понимание архитектуры Ethereum критично: структура данных определяет, как эффективно индексировать события, отслеживать балансы токенов, и декодировать взаимодействия между контрактами.
 
 ## Bitcoin vs Ethereum
 
@@ -27,10 +31,12 @@ Bitcoin хранит UTXO (кто чем владеет). Ethereum хранит 
 
 ## World State
 
-World State — это mapping от адресов к аккаунтам:
+В отличие от Bitcoin, где state "разбросан" по UTXO, Ethereum хранит **явное глобальное состояние** всех аккаунтов. World State — это snapshot всей системы в конкретный момент времени: балансы всех адресов, код всех контрактов, данные всех storage переменных.
+
+Каждый блок содержит **state root** — Merkle root этого состояния. После применения всех транзакций блока, state меняется, и новый state root записывается в следующий блок. Это позволяет любому node верифицировать корректность state transitions.
 
 ```
-World State = `Map<Address, Account>`
+World State = Map&lt;Address, Account&gt;
 
 Address: 20 bytes (0x742d35Cc6634C0532925a3b844Bc9e7595f...)
 ```

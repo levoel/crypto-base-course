@@ -7,7 +7,15 @@ timeToComplete: 20
 
 # Smart Contracts
 
-Smart contract — программа, хранящаяся в блокчейне и выполняемая EVM. Для data engineer важно понимать, как извлекать и анализировать данные из контрактов.
+Smart contract — программа, хранящаяся в блокчейне и выполняемая EVM. В отличие от традиционных приложений, smart contracts **неизменяемы** после deployment: код нельзя обновить (без специальных паттернов), баги нельзя "быстро пофиксить". Это создаёт уникальные challenge для разработки и уникальные возможности для анализа.
+
+Для data engineer smart contracts — основной источник данных в Ethereum:
+- **Events (logs)** — структурированные события, эмитируемые контрактами (Transfer, Swap, Mint...)
+- **State changes** — изменения storage переменных
+- **Function calls** — входные данные транзакций и internal calls
+- **Token balances** — balanceOf через view calls или storage reads
+
+Понимание ABI (Application Binary Interface) и structure контрактов позволяет декодировать raw blockchain data в human-readable format.
 
 ## Contract Lifecycle
 
